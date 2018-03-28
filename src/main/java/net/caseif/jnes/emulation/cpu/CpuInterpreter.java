@@ -44,7 +44,7 @@ public class CpuInterpreter {
     }
 
     public void tick() {
-        Instruction instr = Instruction.fromOpcode(memory.read(regs.popPc()));
+        Instruction instr = Instruction.fromOpcode(readPrg());
 
         byte m = getM(instr.getAddressingMode());
 
@@ -76,35 +76,69 @@ public class CpuInterpreter {
     }
 
     public byte getM(AddressingMode mode) {
-        //TODO: fill this out
         byte m = 0;
         switch (mode) {
-            case IMM:
-                return memory.read(regs.popPc());
-            case ZRP:
-                break;
-            case ZPX:
-                break;
-            case ZPY:
-                break;
-            case ABS:
-                break;
-            case ABX:
-                break;
-            case ABY:
-                break;
-            case IND:
-                break;
-            case IZX:
-                break;
-            case IZY:
-                break;
-            case REL:
-                break;
-            case IMP:
+            case IMM: {
+                return readPrg();
+            }
+            case REL: {
+                return readPrg();
+            }
+            case ZRP: {
+                return memory.read(readPrg());
+            }
+            case ZPX: {
+                byte addr = readPrg();
+                addr += regs.getX();
+                return memory.read(addr);
+            }
+            case ZPY: {
+                byte addr = readPrg();
+                addr += regs.getY();
+                return memory.read(addr);
+            }
+            case ABS: {
+                // ORDER IS IMPORTANT
+                return memory.read((short) (readPrg() & (readPrg() << 8)));
+            }
+            case ABX: {
+                // ORDER IS IMPORTANT
+                return memory.read(regs.getX() + (short) (readPrg() & (readPrg() << 8)));
+            }
+            case ABY: {
+                // ORDER IS IMPORTANT
+                return memory.read(regs.getY() + (short) (readPrg() & (readPrg() << 8)));
+            }
+            case IND: {
+                // ORDER IS IMPORTANT
+                short origAddr = (short) (readPrg() & (readPrg() << 8));
+                byte addrLow = memory.read(origAddr);
+                byte addrHigh = memory.read(origAddr + 1);
+                return memory.read(addrLow & (addrHigh << 8));
+            }
+            case IZX: {
+                // ORDER IS IMPORTANT
+                short origAddr = (short) (regs.getX() + (short) (readPrg() & (readPrg() << 8)));
+                byte addrLow = memory.read(origAddr);
+                byte addrHigh = memory.read(origAddr + 1);
+                return memory.read(addrLow & (addrHigh << 8));
+            }
+            case IZY: {
+                // ORDER IS IMPORTANT
+                short origAddr = (short) (readPrg() & (readPrg() << 8));
+                byte addrLow = memory.read(origAddr);
+                byte addrHigh = memory.read(origAddr + 1);
+                return memory.read(regs.getY() + (addrLow & (addrHigh << 8)));
+            }
+            case IMP: {
                 return 0;
+            }
         }
         return 0;
+    }
+
+    public byte readPrg() {
+        return memory.read(regs.popPc());
     }
 
 }
