@@ -23,13 +23,13 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.disassembler.model;
+package net.caseif.jnes.model;
 
-import static net.caseif.jnes.disassembler.model.AddressingMode.*;
-import static net.caseif.jnes.disassembler.model.Opcode.*;
+import static net.caseif.jnes.model.AddressingMode.*;
+import static net.caseif.jnes.model.Opcode.*;
 
 import com.google.common.collect.ImmutableList;
-import net.caseif.jnes.disassembler.util.CollectionHelper;
+import net.caseif.jnes.util.CollectionHelper;
 
 import java.util.List;
 import java.util.stream.IntStream;

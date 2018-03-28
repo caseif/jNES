@@ -1,41 +1,76 @@
-buildscript {
-    dependencies {
-        classpath 'gradle.plugin.net.minecrell:licenser:0.3'
-    }
-}
-
 plugins {
     id 'java'
+    id 'maven'
+    id 'idea'
+    id 'eclipse'
 
     id 'net.minecrell.licenser' version '0.3'
+    id 'com.github.johnrengelman.shadow' version '2.0.2'
 }
 
-ext.projectName = 'jnes-root'
+defaultTasks 'clean', 'updateLicenses', 'build', 'shadowJar'
 
-defaultTasks 'clean', 'updateLicenses', 'build'
+group = 'net.caseif.jnes'
+version = '0.1.0-SNAPSHOT'
 
-jar.enabled = false
+// Extended project information
+ext.projectName = 'jnes'
+ext.inceptionYear = '2018'
+ext.packaging = 'jar'
 
-allprojects {
-    apply plugin: 'idea'
-    apply plugin: 'eclipse'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
-    apply plugin: 'net.minecrell.licenser'
+// Read source files using UTF-8
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
 
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.6'
+}
 
-    // Read source files using UTF-8
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
+license {
+    header getRootProject().file('HEADER.txt')
+    exclude '**/lib/**/*.java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    shadow 'com.google.guava:guava:24.1-jre'
+}
+
+jar.manifest.mainAttributes(
+        'Implementation-Title': name,
+        'Implementation-Version': version
+)
+
+jar {
+    classifier = 'base'
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': version,
+                'Main-Class': 'net.caseif.jnes.Main'
+        )
     }
+}
 
-    task wrapper(type: Wrapper) {
-        gradleVersion = '4.6'
-    }
+task sourceJar(type: Jar) {
+    from sourceSets.main.java
+    from sourceSets.main.resources
+    classifier = 'sources'
+}
 
-    license {
-        header getRootProject().file('HEADER.txt')
-        exclude '**/lib/**/*.java'
-    }
+shadowJar {
+    classifier = null
+    configurations = [project.configurations.shadow]
+}
+
+artifacts {
+    archives shadowJar
+    archives sourceJar
 }

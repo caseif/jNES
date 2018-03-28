@@ -23,7 +23,7 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.disassembler.model;
+package net.caseif.jnes.model;
 
 public class Cartridge {
 

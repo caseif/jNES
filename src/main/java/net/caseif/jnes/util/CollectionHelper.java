@@ -23,67 +23,17 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.disassembler.model;
+package net.caseif.jnes.util;
 
-public enum AddressingMode {
+import com.google.common.collect.ImmutableList;
 
-    /**
-     * Immediate.
-     */
-    IMM(2),
-    /**
-     * Zero-page.
-     */
-    ZRP(2),
-    /**
-     * Zero-page X.
-     */
-    ZPX(2),
-    /**
-     * Zero-page Y.
-     */
-    ZPY(2),
-    /**
-     * Absolute.
-     */
-    ABS(3),
-    /**
-     * Absolute X.
-     */
-    ABX(3),
-    /**
-     * Absolute Y.
-     */
-    ABY(3),
-    /**
-     * Indirect.
-     */
-    IND(3),
-    /**
-     * Indirect X.
-     */
-    IZX(2),
-    /**
-     * Indirect Y.
-     */
-    IZY(2),
-    /**
-     * Relative.
-     */
-    REL(2),
-    /**
-     * Implied.
-     */
-    IMP(1);
+import java.util.stream.Collector;
 
-    private final int length;
+public class CollectionHelper {
 
-    AddressingMode(int length) {
-        this.length = length;
-    }
-
-    int getLength() {
-        return length;
+    public static <T> Collector<T, ImmutableList.Builder<T>, ImmutableList<T>> toImmutableList() {
+        return Collector.of(ImmutableList.Builder<T>::new, ImmutableList.Builder::add, (l, r) -> l.addAll(r.build()),
+                ImmutableList.Builder::build);
     }
 
 }

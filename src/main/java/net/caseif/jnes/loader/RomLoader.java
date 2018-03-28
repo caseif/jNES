@@ -23,11 +23,10 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.disassembler.loader;
+package net.caseif.jnes.loader;
 
-import net.caseif.jnes.disassembler.model.Cartridge;
+import net.caseif.jnes.model.Cartridge;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

@@ -23,12 +23,12 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.disassembler.model;
+package net.caseif.jnes.model;
 
-import static net.caseif.jnes.disassembler.model.Opcode.Type.NONE;
-import static net.caseif.jnes.disassembler.model.Opcode.Type.R;
-import static net.caseif.jnes.disassembler.model.Opcode.Type.RW;
-import static net.caseif.jnes.disassembler.model.Opcode.Type.W;
+import static net.caseif.jnes.model.Opcode.Type.NONE;
+import static net.caseif.jnes.model.Opcode.Type.R;
+import static net.caseif.jnes.model.Opcode.Type.RW;
+import static net.caseif.jnes.model.Opcode.Type.W;
 
 public enum Opcode {
 

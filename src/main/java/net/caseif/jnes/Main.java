@@ -23,34 +23,53 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.disassembler;
+package net.caseif.jnes;
 
-import com.google.common.io.Files;
-import net.caseif.jnes.disassembler.disassembly.RomDumper;
-import net.caseif.jnes.disassembler.loader.RomLoader;
-import net.caseif.jnes.disassembler.model.Cartridge;
+import net.caseif.jnes.disassembly.RomDumper;
+import net.caseif.jnes.loader.RomLoader;
+import net.caseif.jnes.model.Cartridge;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 2) {
-            System.out.println("Usage: java -jar disassembler <input ROM> <output file>");
+        if (args.length < 2 || args.length > 3) {
+            System.out.println("Usage: java -jar jnes.jar <task> <input ROM> [output file]");
             return;
         }
 
-        Cartridge cart;
-        try (FileInputStream input = new FileInputStream(args[0])) {
-             cart = new RomLoader(input).load();
-        }
+        String cmd = args[0].toLowerCase();
 
-        new RomDumper(cart).dump(new FileOutputStream(args[1]));
+        switch (cmd) {
+            case "disassemble": {
+                if (args.length < 3) {
+                    System.out.println("Output file required.");
+                    return;
+                }
+
+                Cartridge cart;
+                try (FileInputStream input = new FileInputStream(args[1])) {
+                    cart = new RomLoader(input).load();
+                }
+
+                new RomDumper(cart).dump(new FileOutputStream(args[2]));
+
+                break;
+            }
+            case "emulate": {
+                System.err.println("Not yet implemented.");
+
+                break;
+            }
+            default: {
+                System.err.println("Invalid task!");
+
+                break;
+            }
+        }
     }
 
 }
