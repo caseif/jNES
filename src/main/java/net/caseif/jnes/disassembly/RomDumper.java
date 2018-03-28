@@ -26,7 +26,7 @@
 package net.caseif.jnes.disassembly;
 
 import net.caseif.jnes.model.Cartridge;
-import net.caseif.jnes.model.Instruction;
+import net.caseif.jnes.model.cpu.Instruction;
 
 import java.io.IOException;
 import java.io.OutputStream;

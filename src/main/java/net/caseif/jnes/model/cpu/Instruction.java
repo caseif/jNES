@@ -23,10 +23,10 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.model;
+package net.caseif.jnes.model.cpu;
 
-import static net.caseif.jnes.model.AddressingMode.*;
-import static net.caseif.jnes.model.Opcode.*;
+import static net.caseif.jnes.model.cpu.AddressingMode.*;
+import static net.caseif.jnes.model.cpu.Opcode.*;
 
 import com.google.common.collect.ImmutableList;
 import net.caseif.jnes.util.CollectionHelper;

@@ -23,67 +23,31 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.model;
+package net.caseif.jnes.emulation.cpu;
 
-public enum AddressingMode {
+import net.caseif.jnes.model.Cartridge;
 
-    /**
-     * Immediate.
-     */
-    IMM(2),
-    /**
-     * Zero-page.
-     */
-    ZRP(2),
-    /**
-     * Zero-page X.
-     */
-    ZPX(2),
-    /**
-     * Zero-page Y.
-     */
-    ZPY(2),
-    /**
-     * Absolute.
-     */
-    ABS(3),
-    /**
-     * Absolute X.
-     */
-    ABX(3),
-    /**
-     * Absolute Y.
-     */
-    ABY(3),
-    /**
-     * Indirect.
-     */
-    IND(3),
-    /**
-     * Indirect X.
-     */
-    IZX(2),
-    /**
-     * Indirect Y.
-     */
-    IZY(2),
-    /**
-     * Relative.
-     */
-    REL(2),
-    /**
-     * Implied.
-     */
-    IMP(1);
+public class CpuRunner {
 
-    private final int length;
+    private final Cartridge cart;
 
-    AddressingMode(int length) {
-        this.length = length;
+    private byte regPc;
+    private byte regSp;
+    private byte regAcc;
+    private byte regX;
+    private byte regY;
+
+    private final CpuStatus status = new CpuStatus();
+
+    private final CpuMemory memory;
+
+    public CpuRunner(Cartridge cart) {
+        this.cart = cart;
+        this.memory = new CpuMemory(cart);
     }
 
-    int getLength() {
-        return length;
+    public void tick() {
+        //TODO
     }
 
 }
