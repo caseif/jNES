@@ -1,0 +1,61 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+    id 'java'
+    id 'maven'
+
+    id 'com.github.johnrengelman.shadow' version '2.0.2'
+}
+
+defaultTasks 'clean', 'build', 'shadowJar'
+
+group = 'net.caseif.jnes.disassembler'
+version = '0.1.0-SNAPSHOT'
+
+// Extended project information
+ext.projectName = 'jnes-disassembler'
+ext.inceptionYear = '2018'
+ext.packaging = 'jar'
+
+repositories {
+    mavenCentral()
+}
+
+processResources {
+    filter ReplaceTokens, tokens: [
+            "name": project.name,
+            "version": project.version
+    ]
+}
+
+jar.manifest.mainAttributes(
+        'Implementation-Title': name,
+        'Implementation-Version': version
+)
+
+jar {
+    classifier = 'base'
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': version,
+                'Main-Class': 'net.caseif.jnes.disassembler.Main'
+        )
+    }
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.java
+    from sourceSets.main.resources
+    classifier = 'sources'
+}
+
+shadowJar {
+    classifier = null
+    configurations = [project.configurations.shadow]
+}
+
+artifacts {
+    archives shadowJar
+    archives sourceJar
+}

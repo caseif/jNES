@@ -1,0 +1,41 @@
+buildscript {
+    dependencies {
+        classpath 'gradle.plugin.net.minecrell:licenser:0.3'
+    }
+}
+
+plugins {
+    id 'java'
+
+    id 'net.minecrell.licenser' version '0.3'
+}
+
+ext.projectName = 'jnes-root'
+
+defaultTasks 'clean', 'updateLicenses', 'build'
+
+jar.enabled = false
+
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    apply plugin: 'net.minecrell.licenser'
+
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+
+    // Read source files using UTF-8
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    task wrapper(type: Wrapper) {
+        gradleVersion = '4.6'
+    }
+
+    license {
+        header getRootProject().file('HEADER.txt')
+        exclude '**/lib/**/*.java'
+    }
+}

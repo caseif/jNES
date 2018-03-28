@@ -1,0 +1,4 @@
+rootProject.name = 'jnes-root'
+
+include 'disassembler'
+project(':disassembler').name = 'jnes-disassembler'
