@@ -35,6 +35,10 @@ public class CpuRegisters {
     private byte x = 0x00;
     private byte y = 0x00;
 
+    public int getPc() {
+        return unsign(pc);
+    }
+
     public int popPc() {
         return unsign(pc++);
     }
