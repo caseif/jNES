@@ -69,7 +69,7 @@ public class RomDumper {
                     sb.append(instr.getOpcode().name()).append("_").append(instr.getAddressingMode().name());
 
                     if (instr.getLength() > 1) {
-                        writer.write(" $");
+                        sb.append(" $");
                         for (int i = 0; i < instr.getLength() - 1; i++) {
                             sb.append(String.format("%02X", prgBuf.get()));
                         }
