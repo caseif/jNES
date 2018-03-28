@@ -23,31 +23,16 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.emulation.cpu;
+package net.caseif.jnes.util;
 
-import net.caseif.jnes.model.Cartridge;
+public class MathHelper {
 
-public class CpuRunner {
-
-    private final Cartridge cart;
-
-    private byte regPc;
-    private byte regSp;
-    private byte regAcc;
-    private byte regX;
-    private byte regY;
-
-    private final CpuStatus status = new CpuStatus();
-
-    private final CpuMemory memory;
-
-    public CpuRunner(Cartridge cart) {
-        this.cart = cart;
-        this.memory = new CpuMemory(cart);
+    public static short unsign(byte b) {
+        return (short) (b < 0 ? b + 256 : b);
     }
 
-    public void tick() {
-        //TODO
+    public static int unsign(short s) {
+        return (s < 0 ? s + 65536 : s);
     }
 
 }
