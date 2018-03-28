@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.google.guava:guava:24.1-jre'
+    shadow 'com.google.guava:guava:24.1-jre'
 }
 
 processResources {

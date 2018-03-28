@@ -25,10 +25,32 @@
 
 package net.caseif.jnes.disassembler;
 
+import com.google.common.io.Files;
+import net.caseif.jnes.disassembler.disassembly.RomDumper;
+import net.caseif.jnes.disassembler.loader.RomLoader;
+import net.caseif.jnes.disassembler.model.Cartridge;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 public class Main {
 
-    public static void main(String[] args) {
-        //TODO: stub
+    public static void main(String[] args) throws IOException {
+        if (args.length != 2) {
+            System.out.println("Usage: java -jar disassembler <input ROM> <output file>");
+            return;
+        }
+
+        Cartridge cart;
+        try (FileInputStream input = new FileInputStream(args[0])) {
+             cart = new RomLoader(input).load();
+        }
+
+        new RomDumper(cart).dump(new FileOutputStream(args[1]));
     }
 
 }

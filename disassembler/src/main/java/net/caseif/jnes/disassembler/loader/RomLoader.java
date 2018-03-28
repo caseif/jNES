@@ -1,0 +1,104 @@
+/*
+ * This file is a part of jNES.
+ * Copyright (c) 2018, Max Roncace <mproncace@gmail.com>
+ *
+ * The MIT License
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+package net.caseif.jnes.disassembler.loader;
+
+import net.caseif.jnes.disassembler.model.Cartridge;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+
+public class RomLoader {
+
+    private static final int MAGIC = 0x4E45531A;
+    private static final int PRG_CHUNK_SIZE = 16384;
+    private static final int CHR_CHUNK_SIZE = 8192;
+
+    private final InputStream input;
+
+    public RomLoader(InputStream is) {
+        input = is;
+    }
+
+    public Cartridge load() throws IOException {
+        ByteBuffer buffer = toBuffer();
+
+        if (buffer.getInt() != MAGIC) {
+            throw new IllegalArgumentException("Bad NES header.");
+        }
+
+        int prgSize = buffer.get() * PRG_CHUNK_SIZE;
+        int chrSize = buffer.get() * CHR_CHUNK_SIZE;
+
+        byte flag6 = buffer.get();
+
+        Cartridge.MirroringMode mirroring = (flag6 & 0b1) == 0
+                ? Cartridge.MirroringMode.HORIZONTAL
+                : Cartridge.MirroringMode.VERTICAL;
+
+        boolean cartridgePrgRam = (flag6 & 0b10) != 0;
+
+        boolean hasTrainer = (flag6 & 0b100) != 0;
+
+        boolean ignoreMirroringControl = (flag6 & 0b1000) != 0;
+
+        byte mapper = (byte) (flag6 >> 4);
+
+        byte flag7 = buffer.get();
+
+        mapper |= (flag7 & 0b11110000);
+
+        // skip $8-15
+        buffer.position(buffer.position() + 8);
+
+        // skip trainer
+        if (hasTrainer) {
+            buffer.position(buffer.position() + 512);
+        }
+
+        byte[] prg = new byte[prgSize];
+        buffer.get(prg);
+
+        byte[] chr = new byte[chrSize];
+        buffer.get(chr);
+
+        return new Cartridge(prg, chr, mirroring, cartridgePrgRam, ignoreMirroringControl, mapper);
+    }
+
+    private ByteBuffer toBuffer() throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int read;
+        while ((read = input.read(buffer)) != -1) {
+            output.write(buffer, 0, read);
+        }
+        output.flush();
+        return ByteBuffer.wrap(output.toByteArray());
+    }
+
+}
