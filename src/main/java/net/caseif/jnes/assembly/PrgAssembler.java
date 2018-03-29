@@ -50,8 +50,8 @@ public class PrgAssembler {
             String line;
             while (reader.ready()) {
                 line = reader.readLine().trim();
-                if (line.startsWith(";")) {
-                    continue; // ignore the comment
+                if (line.startsWith(";") || line.isEmpty()) {
+                    continue; // ignore the comment / blank line
                 }
                 Matcher m = LINE_PATTERN.matcher(line);
                 if (!m.find()) {
