@@ -74,19 +74,23 @@ public enum Opcode {
      */
     TXA(NONE),
     /**
-     * Transfers the X register to the stack pointer.
-     */
-    TXS(NONE),
-    /**
      * Transfers the Y register to the accumulator.
      */
     TYA(NONE),
+    /**
+     * Transfers the X register to the stack pointer.
+     */
+    TXS(NONE),
 
     // math
     /**
      * Adds a value to the accumulator (with carry).
      */
     ADC(R),
+    /**
+     * Subtracts a value from the accumulator (with borrow).
+     */
+    SBC(R),
     /**
      * Decrements a value in memory by 1.
      */
@@ -111,10 +115,6 @@ public enum Opcode {
      * Increments the Y register by 1.
      */
     INY(NONE),
-    /**
-     * Subtracts a value from the accumulator (with borrow).
-     */
-    SBC(R),
 
     // logic
     /**
@@ -126,6 +126,10 @@ public enum Opcode {
      */
     ASL(RW),
     /**
+     * Applies a bitwise right-shift to the accumulator or a value in memory.
+     */
+    LSR(RW),
+    /**
      * Performs a bitwise AND between the accumulator and a value in memory and
      * sets the Z (zero) flag according to the result. The N and V flags are set
      * respectively to bits 7 and 6 of the original value from memory.
@@ -135,10 +139,6 @@ public enum Opcode {
      * Applies a bitwise XOR to the accumulator with a value in memory.
      */
     EOR(R),
-    /**
-     * Applies a bitwise right-shift to the accumulator or a value in memory.
-     */
-    LSR(RW),
     /**
      * Apples a bitwise OR to the accumulator with a value in memory.
      */
@@ -164,21 +164,21 @@ public enum Opcode {
      */
     BCS(NONE),
     /**
-     * Branches if the zero flag is set.
-     */
-    BEQ(NONE),
-    /**
      * Branches if the zero flag is clear.
      */
     BNE(NONE),
     /**
-     * Branches if the negative flag is set.
+     * Branches if the zero flag is set.
      */
-    BMI(NONE),
+    BEQ(NONE),
     /**
      * Branches if the negative flag is clear.
      */
     BPL(NONE),
+    /**
+     * Branches if the negative flag is set.
+     */
+    BMI(NONE),
     /**
      * Branches if the overflow flag is clear.
      */

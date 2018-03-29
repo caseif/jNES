@@ -61,7 +61,7 @@ public class CpuStatus {
         CARRY(0),
         ZERO(1),
         INTERRUPT_DISABLE(2),
-        DECIMAL_MODE(3),
+        // 2A03 doesn't support decimal mode
         BREAK_COMMAND(4),
         OVERFLOW(6),
         NEGATIVE(7);
