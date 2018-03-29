@@ -55,7 +55,7 @@ public class CpuMemory {
             return cart.getPrgRom()[addr - 0x8000];
         } else {
             // ROM is mirrored if cartridge only has 1 bank
-            if (cart.getPrgRom().length == 16384) {
+            if (cart.getPrgRom().length <= 16384) {
                 addr -= 0x8000;
             }
             return cart.getPrgRom()[addr - 0x8000];

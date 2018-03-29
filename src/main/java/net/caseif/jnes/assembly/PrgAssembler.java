@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 public class PrgAssembler {
 
-    private static final Pattern LINE_PATTERN = Pattern.compile("^([A-Z]{3})(?:_([A-Z]{3}))?(?:\\s+\\$(\\d{2,4}))?(?:\\s*;(?:.*))?$$");
+    private static final Pattern LINE_PATTERN = Pattern.compile("^([A-Z]{3})(?:_([A-Z]{3}))?(?:\\s+\\$([\\dA-F]{2,4}))?(?:\\s*;(?:.*))?$");
 
     private List<Pair<Instruction, Integer>> prg;
 
