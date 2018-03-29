@@ -68,4 +68,14 @@ public class CpuMemory {
         // attempts to write to ROM fail silently
     }
 
+    public void push(CpuRegisters regs, byte value) {
+        sysMemory[0x100 + regs.getSp()] = value;
+        regs.setSp((byte) (regs.getSp() - 1));
+    }
+
+    public byte pop(CpuRegisters regs) {
+        regs.setSp((byte) (regs.getSp() + 1));
+        return sysMemory[0x100 + regs.getSp()];
+    }
+
 }

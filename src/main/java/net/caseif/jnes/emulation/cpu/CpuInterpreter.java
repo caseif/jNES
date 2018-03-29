@@ -214,8 +214,22 @@ public class CpuInterpreter {
                 regs.setPc(m);
                 break;
             case JSR:
-                //TODO
+                memory.push(regs, (byte) (((regs.getPc() >> 8) & 0xFF) - 1)); // push MSB of PC
+                memory.push(regs, (byte) ((regs.getPc() & 0xFF) - 1)); // push LSB of PC
                 break;
+            case RTS: {
+                byte pcl = memory.pop(regs); // pop LSB of PC
+                byte pcm = memory.pop(regs); // pop MSB of PC
+                regs.setPc((short) ((pcm & pcl) + 1));
+                break;
+            }
+            case RTI: {
+                status.deserialize(memory.pop(regs)); // pop flags
+                byte pcl = memory.pop(regs); // pop LSB of PC
+                byte pcm = memory.pop(regs); // pop MSB of PC
+                regs.setPc((short) ((pcm & pcl) + 1));
+                break;
+            }
             // registers
             case CLC:
                 status.clearFlag(CpuStatus.Flag.CARRY);
@@ -246,6 +260,38 @@ public class CpuInterpreter {
                 break;
             case SEI:
                 status.setFlag(CpuStatus.Flag.INTERRUPT_DISABLE);
+                break;
+            // stack
+            case PHA:
+                memory.push(regs, (byte) regs.getAcc());
+                break;
+            case PHP:
+                memory.push(regs, status.serialize());
+                break;
+            case PLA:
+                regs.setAcc(memory.pop(regs));
+                break;
+            case PLP:
+                status.deserialize(memory.pop(regs));
+                break;
+            // system
+            case BRK: {
+                if (!status.getFlag(CpuStatus.Flag.INTERRUPT_DISABLE)) {
+                    break;
+                }
+
+                memory.push(regs, (byte) ((regs.getPc() >> 8) & 0xFF)); // push MSB of PC
+                memory.push(regs, (byte) (regs.getPc() & 0xFF)); // push LSB of PC
+                memory.push(regs, status.serialize()); // push flags
+
+                // load interrupt vector from ROM
+                regs.setPc((short) (memory.read(0xFFFE) & (memory.read(0xFFFF) << 8)));
+
+                status.setFlag(CpuStatus.Flag.BREAK_COMMAND);
+                break;
+            }
+            case NOP:
+                // no-op
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported instruction " + instr.getOpcode().name());
