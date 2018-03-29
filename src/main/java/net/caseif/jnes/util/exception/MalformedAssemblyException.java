@@ -23,31 +23,25 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.util.tuple;
+package net.caseif.jnes.util.exception;
 
-/**
- * Represents a pair of objects.
- */
-public class Pair<A, B> {
-
-    private final A first;
-    private final B second;
-
-    private Pair(A first, B second) {
-        this.first = first;
-        this.second = second;
+public class MalformedAssemblyException extends Exception {
+    public MalformedAssemblyException() {
     }
 
-    public A first() {
-        return first;
+    public MalformedAssemblyException(String message) {
+        super(message);
     }
 
-    public B second() {
-        return second;
+    public MalformedAssemblyException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public static <A, B> Pair<A, B> of(A first, B second) {
-        return new Pair<>(first, second);
+    public MalformedAssemblyException(Throwable cause) {
+        super(cause);
     }
 
+    public MalformedAssemblyException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

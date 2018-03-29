@@ -25,10 +25,12 @@
 
 package net.caseif.jnes;
 
+import net.caseif.jnes.assembly.PrgAssembler;
 import net.caseif.jnes.disassembly.RomDumper;
 import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 import net.caseif.jnes.loader.RomLoader;
 import net.caseif.jnes.model.Cartridge;
+import net.caseif.jnes.util.exception.MalformedAssemblyException;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,6 +47,26 @@ public class Main {
         String cmd = args[0].toLowerCase();
 
         switch (cmd) {
+            case "assemble": {
+                if (args.length < 3) {
+                    System.out.println("Output file required.");
+                    return;
+                }
+
+                PrgAssembler assembler = new PrgAssembler();
+                try (FileInputStream input = new FileInputStream(args[1])) {
+                    try {
+                        assembler.read(input);
+                    } catch (MalformedAssemblyException ex) {
+                        ex.printStackTrace();
+                        System.err.println("Failed to assemble program.");
+                        return;
+                    }
+                }
+
+                assembler.assemble(new FileOutputStream(args[2]));
+                break;
+            }
             case "disassemble": {
                 if (args.length < 3) {
                     System.out.println("Output file required.");

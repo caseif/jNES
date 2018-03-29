@@ -28,18 +28,25 @@ package net.caseif.jnes.model.cpu;
 import static net.caseif.jnes.model.cpu.AddressingMode.*;
 import static net.caseif.jnes.model.cpu.Opcode.*;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.caseif.jnes.util.CollectionHelper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Instruction {
+
+    private static final Map<Opcode, Map<AddressingMode, Instruction>> CACHE = new HashMap<>();
 
     private static final List<Opcode> OPCODE_LIST;
     private static final List<AddressingMode> ADDR_MODE_LIST;
 
     private static final List<Instruction> INSTR_LIST;
+    private static final Map<Instruction, Integer> OPCODE_MAP;
 
     private final Opcode opcode;
     private final AddressingMode addrMode;
@@ -86,13 +93,16 @@ public class Instruction {
         assert ADDR_MODE_LIST.size() == 256;
 
         INSTR_LIST = IntStream.range(0, 256)
-                .mapToObj(i -> new Instruction(OPCODE_LIST.get(i), ADDR_MODE_LIST.get(i)))
+                .mapToObj(i -> Instruction.of(OPCODE_LIST.get(i), ADDR_MODE_LIST.get(i)))
                 .collect(CollectionHelper.toImmutableList());
+
+        OPCODE_MAP = IntStream.range(0, 256).boxed().collect(Collectors.toMap(INSTR_LIST::get, i -> i, (a, b) -> a));
     }
 
-    public Instruction(Opcode opcode, AddressingMode addrMode) {
+    private Instruction(Opcode opcode, AddressingMode addrMode) {
         this.opcode = opcode;
         this.addrMode = addrMode;
+        CACHE.computeIfAbsent(opcode, oc -> new HashMap<>()).put(addrMode, this);
     }
 
     public Opcode getOpcode() {
@@ -110,6 +120,25 @@ public class Instruction {
     public static Instruction fromOpcode(byte opcode) {
         int opcodei = opcode < 0 ? opcode + 256 : opcode;
         return INSTR_LIST.get(opcodei);
+    }
+
+    public static short getOpcode(Instruction instr) {
+        Preconditions.checkArgument(OPCODE_MAP.containsKey(instr), "Bad instruction " + instr);
+        return OPCODE_MAP.get(instr).shortValue();
+    }
+
+    public static Instruction of(Opcode opcode, AddressingMode mode) {
+        if (CACHE.containsKey(opcode)) {
+            if (CACHE.get(opcode).containsKey(mode)) {
+                return CACHE.get(opcode).get(mode);
+            }
+        }
+        return new Instruction(opcode, mode);
+    }
+
+    @Override
+    public String toString() {
+        return opcode.name() + "_" + addrMode.name();
     }
 
 }
