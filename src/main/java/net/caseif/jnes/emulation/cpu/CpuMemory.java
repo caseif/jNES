@@ -25,6 +25,8 @@
 
 package net.caseif.jnes.emulation.cpu;
 
+import static net.caseif.jnes.util.MathHelper.unsign;
+
 import com.google.common.base.Preconditions;
 import net.caseif.jnes.model.Cartridge;
 
@@ -40,12 +42,15 @@ public class CpuMemory {
     }
 
     public byte read(int addr) {
+        addr = unsign((short) addr);
         Preconditions.checkArgument(addr >= 0, "Cannot read negative address.");
         Preconditions.checkArgument(addr <= 0xFFFF, "Cannot read out-of-bounds address.");
         if (addr < 0x2000) {
             return sysMemory[addr % 0x7FF];
         } else if (addr < 0x4000) {
             return ppuIoRegs[addr % 8];
+        } else if (addr < 0x8000) {
+            return 0; // TODO
         } else if (addr < 0xC000) {
             return cart.getPrgRom()[addr - 0x8000];
         } else {

@@ -68,7 +68,7 @@ public class RomLoader {
 
         byte mapper = (byte) (flag6 >> 4);
 
-        byte flag7 = buffer.get();
+        byte flag7 = (byte) (buffer.get() >> 4);
 
         mapper |= (flag7 & 0b11110000);
 

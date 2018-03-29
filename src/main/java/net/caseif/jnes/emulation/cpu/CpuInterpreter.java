@@ -39,7 +39,7 @@ public class CpuInterpreter {
     private final CpuStatus status = new CpuStatus();
     private final CpuRegisters regs = new CpuRegisters();
 
-    private final CpuMemory memory;
+    public final CpuMemory memory;
 
     public CpuInterpreter(Cartridge cart) {
         this.cart = cart;
@@ -47,8 +47,20 @@ public class CpuInterpreter {
     }
 
     public void tick() {
-        Instruction instr = Instruction.fromOpcode(readPrg());
+        Instruction instr = null;
+        try {
+            instr = Instruction.fromOpcode(readPrg());
+            //System.out.println("Executing instruction " + instr.getOpcode().name()
+            //        + " @ $" + String.format("%02X", regs.getPc() - 1));
+            tick0(instr);
+        } catch (Throwable t) {
+            throw new RuntimeException("Exception occurred while executing instruction "
+                    + (instr != null ? instr.getOpcode().name() : "(unknown)")
+                    + " @ $" + String.format("%02X", regs.getPc() - 1), t);
+        }
+    }
 
+    private void tick0(Instruction instr) {
         Pair<Short, Byte> mp = getM(instr.getAddressingMode());
         short addr = mp.first();
         byte m = mp.second();
@@ -172,42 +184,42 @@ public class CpuInterpreter {
             // branching
             case BCC:
                 if (!status.getFlag(CpuStatus.Flag.CARRY)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case BCS:
                 if (status.getFlag(CpuStatus.Flag.CARRY)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case BNE:
                 if (!status.getFlag(CpuStatus.Flag.ZERO)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case BEQ:
                 if (status.getFlag(CpuStatus.Flag.ZERO)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case BPL:
                 if (!status.getFlag(CpuStatus.Flag.NEGATIVE)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case BMI:
                 if (status.getFlag(CpuStatus.Flag.NEGATIVE)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case BVC:
                 if (!status.getFlag(CpuStatus.Flag.OVERFLOW)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case BVS:
                 if (status.getFlag(CpuStatus.Flag.OVERFLOW)) {
-                    branch();
+                    branch(m);
                 }
                 break;
             case JMP:
@@ -294,7 +306,14 @@ public class CpuInterpreter {
                 // no-op
                 break;
             default:
-                throw new UnsupportedOperationException("Unsupported instruction " + instr.getOpcode().name());
+                //TODO
+                // no-op
+                for (int i = 0; i < instr.getLength() - 1; i++) {
+                    readPrg();
+                }
+                break;
+            //default:
+            //    throw new UnsupportedOperationException("Unsupported instruction " + instr.getOpcode().name());
         }
     }
 
@@ -335,9 +354,8 @@ public class CpuInterpreter {
         }
     }
 
-    private void branch() {
-        byte offset = readPrg();
-        regs.setPc((short) (regs.getPc() + offset));
+    private void branch(byte m) {
+        regs.setPc((short) (regs.getPc() + m));
     }
 
     private Pair<Short, Byte> getM(AddressingMode mode) {

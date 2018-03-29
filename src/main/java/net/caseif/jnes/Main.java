@@ -26,6 +26,7 @@
 package net.caseif.jnes;
 
 import net.caseif.jnes.disassembly.RomDumper;
+import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 import net.caseif.jnes.loader.RomLoader;
 import net.caseif.jnes.model.Cartridge;
 
@@ -60,7 +61,20 @@ public class Main {
                 break;
             }
             case "emulate": {
-                System.err.println("Not yet implemented.");
+                Cartridge cart;
+                try (FileInputStream input = new FileInputStream(args[1])) {
+                    cart = new RomLoader(input).load();
+                }
+
+                CpuInterpreter ci = new CpuInterpreter(cart);
+
+                long time = System.nanoTime();
+                int cycles = 100000000;
+                for (int i = 0; i < cycles; i++) {
+                    ci.tick();
+                }
+                time = System.nanoTime() - time;
+                System.out.println("Average speed: " + ((double) cycles / time * 1000000000.0) + " cycles/sec");
 
                 break;
             }
