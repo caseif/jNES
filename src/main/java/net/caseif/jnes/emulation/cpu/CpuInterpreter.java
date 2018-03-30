@@ -30,6 +30,7 @@ import static net.caseif.jnes.util.MathHelper.unsign;
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
+import net.caseif.jnes.util.exception.CpuHaltedException;
 import net.caseif.jnes.util.tuple.Pair;
 
 public class CpuInterpreter {
@@ -37,7 +38,7 @@ public class CpuInterpreter {
     private final Cartridge cart;
 
     private final CpuStatus status = new CpuStatus();
-    private final CpuRegisters regs = new CpuRegisters();
+    final CpuRegisters regs = new CpuRegisters();
 
     public final CpuMemory memory;
 
@@ -46,24 +47,26 @@ public class CpuInterpreter {
         this.memory = new CpuMemory(cart);
     }
 
-    public void tick() {
+    public void tick() throws CpuHaltedException {
         Instruction instr = null;
         try {
             instr = Instruction.fromOpcode(readPrg());
             //System.out.println("Executing instruction " + instr.getOpcode().name()
             //        + " @ $" + String.format("%02X", regs.getPc() - 1));
             tick0(instr);
+        } catch (CpuHaltedException ex) {
+            throw ex;
         } catch (Throwable t) {
             throw new RuntimeException("Exception occurred while executing instruction "
                     + (instr != null ? instr.getOpcode().name() : "(unknown)")
-                    + " @ $" + String.format("%02X", regs.getPc() - 1), t);
+                    + " @ $" + String.format("%04X", regs.getPc() - 1), t);
         }
     }
 
-    private void tick0(Instruction instr) {
-        Pair<Short, Byte> mp = getM(instr.getAddressingMode());
-        short addr = mp.first();
-        byte m = mp.second();
+    private void tick0(Instruction instr) throws CpuHaltedException {
+        Pair<Byte, Short> mp = getM(instr.getAddressingMode());
+        byte m = mp.first();
+        short addr = mp.second();
 
         switch (instr.getOpcode()) {
             // storage
@@ -77,13 +80,13 @@ public class CpuInterpreter {
                 regs.setY(m);
                 break;
             case STA:
-                memory.write(m, (byte) regs.getAcc());
+                memory.write(addr, (byte) regs.getAcc());
                 break;
             case STX:
-                memory.write(m, (byte) regs.getX());
+                memory.write(addr, (byte) regs.getX());
                 break;
             case STY:
-                memory.write(m, (byte) regs.getY());
+                memory.write(addr, (byte) regs.getY());
                 break;
             case TAX:
                 regs.setX((byte) regs.getAcc());
@@ -305,6 +308,8 @@ public class CpuInterpreter {
             case NOP:
                 // no-op
                 break;
+            case KIL:
+                throw new CpuHaltedException();
             default:
                 //TODO
                 // no-op
@@ -314,6 +319,10 @@ public class CpuInterpreter {
                 break;
             //default:
             //    throw new UnsupportedOperationException("Unsupported instruction " + instr.getOpcode().name());
+        }
+
+        if (regs.getPc() - 0x8000 >= cart.getPrgRom().length) {
+            throw new CpuHaltedException();
         }
     }
 
@@ -358,43 +367,47 @@ public class CpuInterpreter {
         regs.setPc((short) (regs.getPc() + m));
     }
 
-    private Pair<Short, Byte> getM(AddressingMode mode) {
-        byte m = 0;
+    /**
+     * Returns value M, along with the address it twas obtained from, if applicable.
+     * @param mode
+     * @return
+     */
+    private Pair<Byte, Short> getM(AddressingMode mode) {
         switch (mode) {
             case IMM: {
-                return Pair.of((short) 0, readPrg());
+                return Pair.of(readPrg(), (short) 0);
             }
             case REL: {
-                return Pair.of((short) 0, readPrg());
+                return Pair.of(readPrg(), (short) 0);
             }
             case ZRP: {
                 byte addr = readPrg();
-                return Pair.of(unsign(addr), memory.read(addr));
+                return Pair.of(memory.read(addr), unsign(addr));
             }
             case ZPX: {
                 byte addr = readPrg();
                 addr += regs.getX();
-                return Pair.of(unsign(addr), memory.read(addr));
+                return Pair.of(memory.read(addr), unsign(addr));
             }
             case ZPY: {
                 byte addr = readPrg();
                 addr += regs.getY();
-                return Pair.of(unsign(addr), memory.read(addr));
+                return Pair.of(memory.read(addr), unsign(addr));
             }
             case ABS: {
                 // ORDER IS IMPORTANT
                 short addr = (short) (readPrg() & (readPrg() << 8));
-                return Pair.of(addr, memory.read(addr));
+                return Pair.of(memory.read(addr), addr);
             }
             case ABX: {
                 // ORDER IS IMPORTANT
                 short addr = (short) (regs.getX() + (readPrg() & (readPrg() << 8)));
-                return Pair.of(addr, memory.read(addr));
+                return Pair.of(memory.read(addr), addr);
             }
             case ABY: {
                 // ORDER IS IMPORTANT
                 short addr = (short) (regs.getY() + (readPrg() & (readPrg() << 8)));
-                return Pair.of(addr, memory.read(addr));
+                return Pair.of(memory.read(addr), addr);
             }
             case IND: {
                 // ORDER IS IMPORTANT
@@ -402,7 +415,7 @@ public class CpuInterpreter {
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
                 short addr = (short) (addrLow & (addrHigh << 8));
-                return Pair.of(addr, memory.read(addr));
+                return Pair.of(memory.read(addr), addr);
             }
             case IZX: {
                 // ORDER IS IMPORTANT
@@ -410,7 +423,7 @@ public class CpuInterpreter {
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
                 short addr = (short) (addrLow & (addrHigh << 8));
-                return Pair.of(addr, memory.read(addr));
+                return Pair.of(memory.read(addr), addr);
             }
             case IZY: {
                 // ORDER IS IMPORTANT
@@ -418,10 +431,10 @@ public class CpuInterpreter {
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
                 short addr = (short) (regs.getY() + (addrLow & (addrHigh << 8)));
-                return Pair.of(addr, memory.read(addr));
+                return Pair.of(memory.read(addr), addr);
             }
             case IMP: {
-                return Pair.of((short) 0, (byte) 0);
+                return Pair.of((byte) 0, (short) 0);
             }
             default: {
                 throw new AssertionError("Unhandled addressing mode " + mode.name());
@@ -431,6 +444,10 @@ public class CpuInterpreter {
 
     private byte readPrg() {
         return memory.read(regs.popPc());
+    }
+
+    byte peekPrg() {
+        return memory.read(regs.getPc());
     }
 
 }

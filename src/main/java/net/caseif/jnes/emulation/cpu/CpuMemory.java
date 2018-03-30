@@ -41,10 +41,15 @@ public class CpuMemory {
         this.cart = cart;
     }
 
+    public byte read(byte addr) {
+        return read(unsign(addr));
+    }
+
+    public byte read(short addr) {
+        return read(unsign(addr));
+    }
+
     public byte read(int addr) {
-        addr = unsign((short) addr);
-        Preconditions.checkArgument(addr >= 0, "Cannot read negative address.");
-        Preconditions.checkArgument(addr <= 0xFFFF, "Cannot read out-of-bounds address.");
         if (addr < 0x2000) {
             return sysMemory[addr % 0x7FF];
         } else if (addr < 0x4000) {
@@ -62,9 +67,15 @@ public class CpuMemory {
         }
     }
 
+    public void write(byte addr, byte value) {
+        write(unsign(addr), value);
+    }
+
+    public void write(short addr, byte value) {
+        write(unsign(addr), value);
+    }
+
     public void write(int addr, byte value) {
-        Preconditions.checkArgument(addr >= 0, "Cannot read negative address.");
-        Preconditions.checkArgument(addr <= 0xFFFF, "Cannot read out-of-bounds address.");
         if (addr < 0x2000) {
             sysMemory[addr % 0x7FF] = value;
         } else if (addr < 0x4000) {

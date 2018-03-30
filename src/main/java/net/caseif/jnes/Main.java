@@ -31,6 +31,7 @@ import net.caseif.jnes.disassembly.RomDumper;
 import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 import net.caseif.jnes.loader.RomLoader;
 import net.caseif.jnes.model.Cartridge;
+import net.caseif.jnes.util.exception.CpuHaltedException;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
 
 import java.io.FileInputStream;
@@ -108,7 +109,12 @@ public class Main {
                 long time = System.nanoTime();
                 int cycles = 100000000;
                 for (int i = 0; i < cycles; i++) {
-                    ci.tick();
+                    try {
+                        ci.tick();
+                    } catch (CpuHaltedException ex) {
+                        System.out.println("Halted.");
+                        break;
+                    }
                 }
                 time = System.nanoTime() - time;
                 System.out.println("Average speed: " + ((double) cycles / time * 1000000000.0) + " cycles/sec");

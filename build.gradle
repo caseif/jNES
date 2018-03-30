@@ -41,6 +41,8 @@ repositories {
 
 dependencies {
     shadow 'com.google.guava:guava:24.1-jre'
+
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 }
 
 jar.manifest.mainAttributes(
