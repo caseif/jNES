@@ -26,6 +26,7 @@
 package net.caseif.jnes;
 
 import net.caseif.jnes.assembly.PrgAssembler;
+import net.caseif.jnes.disassembly.PrgDisassembler;
 import net.caseif.jnes.disassembly.RomDumper;
 import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 import net.caseif.jnes.loader.RomLoader;
@@ -53,19 +54,19 @@ public class Main {
                     return;
                 }
 
-                PrgAssembler assembler = new PrgAssembler();
-                try (FileInputStream input = new FileInputStream(args[1])) {
-                    try {
+                try {
+                    PrgAssembler assembler = new PrgAssembler();
+                    try (FileInputStream input = new FileInputStream(args[1])) {
                         assembler.read(input);
-                    } catch (MalformedAssemblyException ex) {
-                        ex.printStackTrace();
-                        System.err.println("Failed to assemble program.");
-                        return;
                     }
-                }
 
-                assembler.assemble(new FileOutputStream(args[2]));
-                break;
+                    assembler.assemble(new FileOutputStream(args[2]));
+                    break;
+                } catch (MalformedAssemblyException ex) {
+                    ex.printStackTrace();
+                    System.err.println("Failed to assemble program.");
+                    return;
+                }
             }
             case "disassemble": {
                 if (args.length < 3) {
@@ -73,9 +74,23 @@ public class Main {
                     return;
                 }
 
+                PrgDisassembler disassembler = new PrgDisassembler();
+                try (FileInputStream input = new FileInputStream(args[1])) {
+                    disassembler.read(input);
+                }
+                disassembler.dump(new FileOutputStream(args[2]));
+
+                break;
+            }
+            case "dump": {
+                if (args.length < 3) {
+                    System.out.println("Output file required.");
+                    return;
+                }
+
                 Cartridge cart;
                 try (FileInputStream input = new FileInputStream(args[1])) {
-                    cart = new RomLoader(input).load();
+                    cart = new RomLoader().load(input);
                 }
 
                 new RomDumper(cart).dump(new FileOutputStream(args[2]));
@@ -85,7 +100,7 @@ public class Main {
             case "emulate": {
                 Cartridge cart;
                 try (FileInputStream input = new FileInputStream(args[1])) {
-                    cart = new RomLoader(input).load();
+                    cart = new RomLoader().load(input);
                 }
 
                 CpuInterpreter ci = new CpuInterpreter(cart);

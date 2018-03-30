@@ -32,20 +32,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import static net.caseif.jnes.util.IoHelper.toBuffer;
+
 public class RomLoader {
 
     private static final int MAGIC = 0x4E45531A;
     private static final int PRG_CHUNK_SIZE = 16384;
     private static final int CHR_CHUNK_SIZE = 8192;
 
-    private final InputStream input;
-
-    public RomLoader(InputStream is) {
-        input = is;
-    }
-
-    public Cartridge load() throws IOException {
-        ByteBuffer buffer = toBuffer();
+    public Cartridge load(InputStream input) throws IOException {
+        ByteBuffer buffer = toBuffer(input);
 
         if (buffer.getInt() != MAGIC) {
             throw new IllegalArgumentException("Bad NES header.");
@@ -87,17 +83,6 @@ public class RomLoader {
         buffer.get(chr);
 
         return new Cartridge(prg, chr, mirroring, cartridgePrgRam, ignoreMirroringControl, mapper);
-    }
-
-    private ByteBuffer toBuffer() throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int read;
-        while ((read = input.read(buffer)) != -1) {
-            output.write(buffer, 0, read);
-        }
-        output.flush();
-        return ByteBuffer.wrap(output.toByteArray());
     }
 
 }

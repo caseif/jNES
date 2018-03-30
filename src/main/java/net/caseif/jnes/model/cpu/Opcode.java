@@ -25,10 +25,7 @@
 
 package net.caseif.jnes.model.cpu;
 
-import static net.caseif.jnes.model.cpu.Opcode.Type.NONE;
-import static net.caseif.jnes.model.cpu.Opcode.Type.R;
-import static net.caseif.jnes.model.cpu.Opcode.Type.RW;
-import static net.caseif.jnes.model.cpu.Opcode.Type.W;
+import static net.caseif.jnes.model.cpu.Opcode.Type.*;
 
 public enum Opcode {
 
@@ -158,46 +155,46 @@ public enum Opcode {
     /**
      * Branches if the carry flag is clear.
      */
-    BCC(NONE),
+    BCC(BRANCH),
     /**
      * Branches if the carry flag is set.
      */
-    BCS(NONE),
+    BCS(BRANCH),
     /**
      * Branches if the zero flag is clear.
      */
-    BNE(NONE),
+    BNE(BRANCH),
     /**
      * Branches if the zero flag is set.
      */
-    BEQ(NONE),
+    BEQ(BRANCH),
     /**
      * Branches if the negative flag is clear.
      */
-    BPL(NONE),
+    BPL(BRANCH),
     /**
      * Branches if the negative flag is set.
      */
-    BMI(NONE),
+    BMI(BRANCH),
     /**
      * Branches if the overflow flag is clear.
      */
-    BVC(NONE),
+    BVC(BRANCH),
     /**
      * Branches if the overflow flag is set.
      */
-    BVS(NONE),
+    BVS(BRANCH),
 
     // jumping
     /**
      * Jumps to an address.
      */
-    JMP(NONE),
+    JMP(BRANCH),
     /**
      * Pushes the address of the next operation minus one to the stack, then
      * jumps to an address.
      */
-    JSR(NONE),
+    JSR(BRANCH),
     /**
      * Returns from an interrupt, pulling processor flags followed by the
      * program counter from the stack.
@@ -319,6 +316,7 @@ public enum Opcode {
 
     public enum Type {
         NONE,
+        BRANCH,
         R,
         W,
         RW;

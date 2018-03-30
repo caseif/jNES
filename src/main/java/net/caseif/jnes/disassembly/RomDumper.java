@@ -45,7 +45,6 @@ public class RomDumper {
 
     public void dump(OutputStream output) throws IOException {
         try (Writer writer = new OutputStreamWriter(output)) {
-
             writer.write("Mirroring mode: " + cart.getMirroringMode().name() + "\n");
             writer.write("Ignore mirroring control: " + cart.doesIgnoreMirroringControl() + "\n");
             writer.write("Cartridge PRG RAM: " + cart.hasCartridgePrgRam() + "\n");
