@@ -39,7 +39,7 @@ public class LoadStoreTest {
     private static CpuInterpreter ci;
 
     @BeforeAll
-    public static void init() throws IOException {
+    public static void init() throws IOException, ClassNotFoundException {
         byte[] prg = IoHelper.toBuffer(LoadStoreTest.class.getResourceAsStream("/cpu_tests/load_store.prg")).array();
         Cartridge cart = new Cartridge(prg, new byte[0], Cartridge.MirroringMode.HORIZONTAL, false, false, (byte) 0);
 
@@ -47,7 +47,7 @@ public class LoadStoreTest {
     }
 
     @Test
-    public void testLoadStore() {
+    public void testLoadStore() throws ClassNotFoundException {
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(1, ci.regs.getAcc());
         assertEquals(2, ci.regs.getX());

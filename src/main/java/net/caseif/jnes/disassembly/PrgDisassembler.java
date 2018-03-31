@@ -25,7 +25,6 @@
 
 package net.caseif.jnes.disassembly;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
 
@@ -33,7 +32,6 @@ import java.io.*;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
-import static net.caseif.jnes.model.cpu.AddressingMode.*;
 import static net.caseif.jnes.util.IoHelper.toBuffer;
 
 public class PrgDisassembler {

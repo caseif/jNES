@@ -31,6 +31,7 @@ import net.caseif.jnes.util.exception.CpuHaltedException;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+
 public class CpuTestHelper {
 
     static void runCpuOnce(CpuInterpreter ci) {

@@ -4,11 +4,12 @@ plugins {
     id 'idea'
     id 'eclipse'
 
+    id 'jacoco'
     id 'net.minecrell.licenser' version '0.3'
     id 'com.github.johnrengelman.shadow' version '2.0.2'
 }
 
-defaultTasks 'clean', 'updateLicenses', 'build', 'shadowJar'
+defaultTasks 'clean', 'updateLicenses', 'build', 'jacocoTestReport', 'shadowJar'
 
 group = 'net.caseif.jnes'
 version = '0.1.0-SNAPSHOT'
@@ -20,6 +21,10 @@ ext.packaging = 'jar'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
+
+configurations {
+    testCompile.extendsFrom(shadow)
+}
 
 // Read source files using UTF-8
 tasks.withType(JavaCompile) {
@@ -42,6 +47,8 @@ repositories {
 dependencies {
     shadow 'com.google.guava:guava:24.1-jre'
 
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+
     testCompile 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 }
 
@@ -49,6 +56,10 @@ jar.manifest.mainAttributes(
         'Implementation-Title': name,
         'Implementation-Version': version
 )
+
+test {
+    useJUnitPlatform()
+}
 
 jar {
     classifier = 'base'
