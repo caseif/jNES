@@ -414,17 +414,17 @@ public class CpuInterpreter {
                 return Pair.of(memory.read(addr), addr);
             }
             case IZX: {
-                short origAddr = (short) (regs.getX() + readShort());
+                short origAddr = (short) (regs.getX() + unsign(readPrg()));
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
-                short addr = (short) (addrLow & (addrHigh << 8));
+                short addr = (short) (addrLow | (addrHigh << 8));
                 return Pair.of(memory.read(addr), addr);
             }
             case IZY: {
-                short origAddr = readShort();
+                byte origAddr = readPrg();
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
-                short addr = (short) (regs.getY() + (addrLow & (addrHigh << 8)));
+                short addr = (short) (regs.getY() + (addrLow | (addrHigh << 8)));
                 return Pair.of(memory.read(addr), addr);
             }
             case IMP: {

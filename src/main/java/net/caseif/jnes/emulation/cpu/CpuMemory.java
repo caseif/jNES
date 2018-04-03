@@ -50,7 +50,7 @@ public class CpuMemory {
 
     public byte read(int addr) {
         if (addr < 0x2000) {
-            return sysMemory[addr % 0x7FF];
+            return sysMemory[addr % 0x800];
         } else if (addr < 0x401F) {
             return ppuIoRegs[addr % 8];
         } else if (addr < 0x8000) {

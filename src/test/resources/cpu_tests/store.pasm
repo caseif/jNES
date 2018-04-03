@@ -79,11 +79,19 @@ NOP             ; perform assertions:
                 ; $0026 = 0x01
                 ; $0006 = 0x01
 
-; test absolute (y-indexed addressing)
-
-
 ; test indexed indirect addressing
-
+LDA #$13        ; a = 0x13
+STA $08         ; write a=0x13 to $0008
+STA $0A         ; write a=0x13 to $000A
+LDA #$02        ; a = 0x01
+STA $09         ; write a=0x02 to $0009
+LDX #$04        ; x = 0x04
+LDA #$01        ; a = 0x01
+STA ($04,X)     ; write a=0x01 to 4+4=$0008 -> $0213
+STA ($05,X)     ; write a=0x01 to 5+4=$0009 -> $1302
+NOP             ; perform assertions:
+                ; 0x0213 = 0x01
+                ; 0x1302 = 0x01
 
 ; test indirect indexed addressing
 
