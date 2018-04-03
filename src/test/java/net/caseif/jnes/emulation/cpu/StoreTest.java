@@ -88,6 +88,12 @@ public class StoreTest {
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(1, ci.memory.read(0x0213));
         assertEquals(1, ci.memory.read(0x1302));
+        assertEquals(1, ci.memory.read(0x0302));
+
+        // test indirect indexed addressing
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(1, ci.memory.read(0x0215));
+        assertEquals(1, ci.memory.read(0x1304));
 
         // X REGISTER TESTS
         // test zero-page addressing

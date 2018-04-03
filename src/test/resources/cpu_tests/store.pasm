@@ -83,18 +83,29 @@ NOP             ; perform assertions:
 LDA #$13        ; a = 0x13
 STA $08         ; write a=0x13 to $0008
 STA $0A         ; write a=0x13 to $000A
-LDA #$02        ; a = 0x01
+LDA #$02        ; a = 0x02
 STA $09         ; write a=0x02 to $0009
+STA $03         ; write a=0x02 to $0003
+LDA #$03        ; a = 0x03
+STA $04         ; write a=0x03 to $0004
 LDX #$04        ; x = 0x04
 LDA #$01        ; a = 0x01
 STA ($04,X)     ; write a=0x01 to 4+4=$0008 -> $0213
 STA ($05,X)     ; write a=0x01 to 5+4=$0009 -> $1302
+STA ($FF,X)     ; write a=0x01 to FF+4=$0003 -> $0302
 NOP             ; perform assertions:
                 ; 0x0213 = 0x01
                 ; 0x1302 = 0x01
+                ; $0403 = 0x01
 
 ; test indirect indexed addressing
-
+; memory is already set up from previous test
+LDY #$02        ; y = 0x02
+STA ($08),Y     ; write a=1 to $0008 -> 0213+2=$0215
+STA ($09),Y     ; write a=1 to $0009 -> 1302+2=$1304
+NOP             ; perform assertions:
+                ; $0215 = 0x01
+                ; $1304 = 0x01
 
 ;;; X REGISTER TESTS
 
