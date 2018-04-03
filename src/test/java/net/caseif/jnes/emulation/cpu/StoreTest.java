@@ -68,6 +68,16 @@ public class StoreTest {
         assertEquals(1, ci.memory.read(0x0303));
         assertEquals(1, ci.memory.read(0x0103));
         assertEquals(1, ci.memory.read(0x0203));
+        assertEquals(1, ci.memory.read(0x0303));
+
+        // test absolute (x-indexed) addressing
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(1, ci.memory.read(0x0025));
+        assertEquals(1, ci.memory.read(0x0305));
+        assertEquals(1, ci.memory.read(0x0105));
+        assertEquals(1, ci.memory.read(0x0205));
+        assertEquals(1, ci.memory.read(0x0305));
+        assertEquals(1, ci.memory.read(0x0005));
 
         // X REGISTER TESTS
         // test zero-page addressing

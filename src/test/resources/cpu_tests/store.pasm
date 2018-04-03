@@ -36,7 +36,8 @@ NOP             ; perform assertions:
 STA $0023       ; write a=1 to $0023
 STA $0303       ; write a=1 to $0303
 STA $0903       ; write a=1 to $0903 ($0103 with mirroring)
-STA $1203       ; write a=1 to $0A03 ($0203 with mirroring)
+STA $0A03       ; write a=1 to $0A03 ($0203 with mirroring)
+STA $0F03       ; write a=1 to $0F03 ($0303 with mirroring)
 ; TODO: test I/O registers
 ; TODO: test expansion ROM
 ; TODO: test SRAM
@@ -47,9 +48,26 @@ NOP             ; perform assertions:
                 ; $0303 = 0x01
                 ; $0103 = 0x01
                 ; $0203 = 0x01
+                ; $0303 = 0x01
 
 ; test absolute (x-indexed) addressing
-
+LDX #$02        ; x = 0x02
+STA $0023,X     ; write a=1 to 23+2=$0025
+STA $0303,X     ; write a=1 to 303+2=$0305
+STA $0903,X     ; write a=1 to 903+2=$0905 ($0105 with mirroring)
+STA $0A03,X     ; write a=1 to A03+2=$0A03 ($0205 with mirroring)
+STA $0F03,X     ; write a=1 to F03+2=$0F03 ($0305 with mirroring)
+LDX #$06        ; x = 0x06
+STA $FFFF,X     ; write a=1 to FFFF+6=$0005 (wraparound)
+STA $7FFC,X     ; write to ROM (should be ignored silently)
+STA $FFF0,X     ; write to ROM (high address)
+NOP             ; perform assertions:
+                ; $0025 = 0x01
+                ; $0305 = 0x01
+                ; $0105 = 0x01
+                ; $0205 = 0x01
+                ; $0305 = 0x01
+                ; $0005 = 0x01
 
 ; test absolute (y-indexed addressing)
 

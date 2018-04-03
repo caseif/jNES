@@ -395,39 +395,33 @@ public class CpuInterpreter {
                 return Pair.of(memory.read(addr), unsign(addr));
             }
             case ABS: {
-                // ORDER IS IMPORTANT
                 short addr = readShort();
                 return Pair.of(memory.read(addr), addr);
             }
             case ABX: {
-                // ORDER IS IMPORTANT
-                short addr = (short) (regs.getX() + (readPrg() & (readPrg() << 8)));
+                short addr = (short) (regs.getX() + readShort());
                 return Pair.of(memory.read(addr), addr);
             }
             case ABY: {
-                // ORDER IS IMPORTANT
-                short addr = (short) (regs.getY() + (readPrg() & (readPrg() << 8)));
+                short addr = (short) (regs.getY() + readShort());
                 return Pair.of(memory.read(addr), addr);
             }
             case IND: {
-                // ORDER IS IMPORTANT
-                short origAddr = (short) (readPrg() & (readPrg() << 8));
+                short origAddr = readShort();
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
                 short addr = (short) (addrLow & (addrHigh << 8));
                 return Pair.of(memory.read(addr), addr);
             }
             case IZX: {
-                // ORDER IS IMPORTANT
-                short origAddr = (short) (regs.getX() + (short) (readPrg() & (readPrg() << 8)));
+                short origAddr = (short) (regs.getX() + readShort());
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
                 short addr = (short) (addrLow & (addrHigh << 8));
                 return Pair.of(memory.read(addr), addr);
             }
             case IZY: {
-                // ORDER IS IMPORTANT
-                short origAddr = (short) (readPrg() & (readPrg() << 8));
+                short origAddr = readShort();
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
                 short addr = (short) (regs.getY() + (addrLow & (addrHigh << 8)));
@@ -447,6 +441,7 @@ public class CpuInterpreter {
     }
 
     private short readShort() {
+        // ORDER IS IMPORTANT
         return (short) (unsign(readPrg()) | (unsign(readPrg()) << 8));
     }
 
