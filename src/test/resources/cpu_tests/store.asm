@@ -138,4 +138,18 @@ NOP             ; perform assertions:
                 ; $0000 = 0x02
                 ; $0020 = 0x02
 
+;;; Y REGISTER TESTS
+
+; preparation
+LDY #$04        ; y = 0x04
+
+; test zero-page addressing
+STY $10         ; write x=4 to $0010
+STY $90         ; write x=4 to $0090
+STY $FF         ; write x=4 to $00FF
+NOP             ; perform assertions:
+                ; $0010 = 0x04
+                ; $0090 = 0x04
+                ; $00FF = 0x04
+
 ; remaining instruction+addressing combos are redundant due to shared implementations

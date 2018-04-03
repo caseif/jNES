@@ -25,15 +25,13 @@
 
 package net.caseif.jnes.emulation.cpu;
 
-import static net.caseif.jnes.emulation.cpu.CpuTestHelper.loadPrg;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import net.caseif.jnes.model.Cartridge;
-import net.caseif.jnes.util.IoHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+
+import static net.caseif.jnes.emulation.cpu.CpuTestHelper.loadPrg;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StoreTest {
 
@@ -110,6 +108,13 @@ public class StoreTest {
         assertEquals(2, ci.memory.read(0xA0));
         assertEquals(2, ci.memory.read(0x00));
         assertEquals(2, ci.memory.read(0x20));
+
+        // Y REGISTER TESTS
+        // test zero-page addressing
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(4, ci.memory.read(0x10));
+        assertEquals(4, ci.memory.read(0x90));
+        assertEquals(4, ci.memory.read(0xFF));
     }
 
 }
