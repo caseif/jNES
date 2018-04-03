@@ -167,6 +167,7 @@ public class PrgAssembler {
             } else if (p.second() instanceof Integer) {
                 val = (Integer) p.second();
             } else {
+                assert p.second() instanceof String;
                 if (p.first().getOpcode() == Opcode.JMP || p.first().getOpcode() == Opcode.JSR) {
                     val = labels.get(p.second());
                 } else {
@@ -181,8 +182,8 @@ public class PrgAssembler {
             if (p.first().getLength() == 2) {
                 output.write(val);
             } else if (p.first().getLength() == 3) {
-                output.write(val >> 4); // write high bits
                 output.write(val);      // write low bits
+                output.write(val >> 8); // write high bits
             }
         }
         output.close();

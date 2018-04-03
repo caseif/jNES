@@ -25,14 +25,27 @@
 
 package net.caseif.jnes.emulation.cpu;
 
+import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.model.cpu.Instruction;
 import net.caseif.jnes.model.cpu.Opcode;
+import net.caseif.jnes.util.IoHelper;
 import net.caseif.jnes.util.exception.CpuHaltedException;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
+
 
 public class CpuTestHelper {
+
+    static CpuInterpreter loadPrg(String file) throws IOException {
+        byte[] prg = IoHelper.toBuffer(StoreTest.class.getResourceAsStream(file)).array();
+        byte[] prgExtended = new byte[16384];
+        System.arraycopy(prg, 0, prgExtended, 0, prg.length);
+        Cartridge cart = new Cartridge(prgExtended, new byte[0], Cartridge.MirroringMode.HORIZONTAL, false, false, (byte) 0);
+
+        return new CpuInterpreter(cart);
+    }
 
     static void runCpuOnce(CpuInterpreter ci) {
         try {

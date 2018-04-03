@@ -58,7 +58,7 @@ public class CpuInterpreter {
             throw ex;
         } catch (Throwable t) {
             throw new RuntimeException("Exception occurred while executing instruction "
-                    + (instr != null ? instr.getOpcode().name() : "(unknown)")
+                    + (instr != null ? instr : "(unknown)")
                     + " @ $" + String.format("%04X", regs.getPc() - 1), t);
         }
     }
@@ -381,8 +381,8 @@ public class CpuInterpreter {
                 return Pair.of(readPrg(), (short) 0);
             }
             case ZRP: {
-                byte addr = readPrg();
-                return Pair.of(memory.read(addr), unsign(addr));
+                short addr = unsign(readPrg());
+                return Pair.of(memory.read(addr), addr);
             }
             case ZPX: {
                 byte addr = readPrg();
@@ -396,7 +396,7 @@ public class CpuInterpreter {
             }
             case ABS: {
                 // ORDER IS IMPORTANT
-                short addr = (short) (readPrg() & (readPrg() << 8));
+                short addr = readShort();
                 return Pair.of(memory.read(addr), addr);
             }
             case ABX: {
@@ -444,6 +444,10 @@ public class CpuInterpreter {
 
     private byte readPrg() {
         return memory.read(regs.popPc());
+    }
+
+    private short readShort() {
+        return (short) (unsign(readPrg()) | (unsign(readPrg()) << 8));
     }
 
     byte peekPrg() {

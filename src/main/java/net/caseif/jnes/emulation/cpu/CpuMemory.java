@@ -27,7 +27,6 @@ package net.caseif.jnes.emulation.cpu;
 
 import static net.caseif.jnes.util.MathHelper.unsign;
 
-import com.google.common.base.Preconditions;
 import net.caseif.jnes.model.Cartridge;
 
 public class CpuMemory {
@@ -52,18 +51,17 @@ public class CpuMemory {
     public byte read(int addr) {
         if (addr < 0x2000) {
             return sysMemory[addr % 0x7FF];
-        } else if (addr < 0x4000) {
+        } else if (addr < 0x401F) {
             return ppuIoRegs[addr % 8];
         } else if (addr < 0x8000) {
             return 0; // TODO
-        } else if (addr < 0xC000) {
-            return cart.getPrgRom()[addr - 0x8000];
         } else {
+            addr -= 0x8000;
             // ROM is mirrored if cartridge only has 1 bank
             if (cart.getPrgRom().length <= 16384) {
-                addr -= 0x8000;
+                addr %= 0x4000;
             }
-            return cart.getPrgRom()[addr - 0x8000];
+            return cart.getPrgRom()[addr];
         }
     }
 
@@ -77,7 +75,7 @@ public class CpuMemory {
 
     public void write(int addr, byte value) {
         if (addr < 0x2000) {
-            sysMemory[addr % 0x7FF] = value;
+            sysMemory[addr % 0x800] = value;
         } else if (addr < 0x4000) {
             ppuIoRegs[addr % 8] = value;
         }

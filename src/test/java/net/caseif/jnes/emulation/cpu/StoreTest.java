@@ -25,6 +25,9 @@
 
 package net.caseif.jnes.emulation.cpu;
 
+import static net.caseif.jnes.emulation.cpu.CpuTestHelper.loadPrg;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.util.IoHelper;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,45 +35,48 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class LoadStoreTest {
+public class StoreTest {
 
     private static CpuInterpreter ci;
 
     @BeforeAll
-    public static void init() throws IOException, ClassNotFoundException {
-        byte[] prg = IoHelper.toBuffer(LoadStoreTest.class.getResourceAsStream("/cpu_tests/load_store.prg")).array();
-        Cartridge cart = new Cartridge(prg, new byte[0], Cartridge.MirroringMode.HORIZONTAL, false, false, (byte) 0);
-
-        ci = new CpuInterpreter(cart);
+    public static void init() throws IOException {
+        ci = loadPrg("/cpu_tests/store.prg");
     }
 
     @Test
-    public void testLoadStore() throws ClassNotFoundException {
-        CpuTestHelper.runCpuOnce(ci);
-        assertEquals(1, ci.regs.getAcc());
-        assertEquals(2, ci.regs.getX());
-        assertEquals(4, ci.regs.getY());
-
+    public void testLoadStore() {
+        // ACCUMULATOR TESTS
+        // test zero-page addressing
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(1, ci.memory.read(0x10));
         assertEquals(1, ci.memory.read(0x90));
         assertEquals(1, ci.memory.read(0xFF));
 
+        // test zero-page (x-indexed) addressing
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(1, ci.memory.read(0x12));
         assertEquals(1, ci.memory.read(0x92));
         assertEquals(1, ci.memory.read(0x01));
-        assertEquals(1, ci.memory.read(0xA0));
-        assertEquals(1, ci.memory.read(0x00));
-        assertEquals(1, ci.memory.read(0x10));
+        assertEquals(1, ci.memory.read(0xA1));
+        assertEquals(1, ci.memory.read(0x02));
+        assertEquals(1, ci.memory.read(0x11));
 
+        // test absolute addressing
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(1, ci.memory.read(0x0023));
+        assertEquals(1, ci.memory.read(0x0303));
+        assertEquals(1, ci.memory.read(0x0103));
+        assertEquals(1, ci.memory.read(0x0203));
+
+        // X REGISTER TESTS
+        // test zero-page addressing
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(2, ci.memory.read(0x10));
         assertEquals(2, ci.memory.read(0x90));
         assertEquals(2, ci.memory.read(0xFF));
 
+        // test zero-page (y-indexed) addressing
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(2, ci.memory.read(0x14));
         assertEquals(2, ci.memory.read(0x94));
