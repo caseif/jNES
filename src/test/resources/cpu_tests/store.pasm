@@ -69,6 +69,16 @@ NOP             ; perform assertions:
                 ; $0305 = 0x01
                 ; $0005 = 0x01
 
+; test absolute (y-indexed) addressing
+; these tests are less exhaustive since most of the implementation is shared
+; with absolute (x-indexed) mode
+LDY #$07        ; y = 0x08
+STA $001F,Y     ; write a=1 to 1F+7=$0026
+STA $FFFF,Y     ; write a=1 to FFFF+7=$0006 (wraparound)
+NOP             ; perform assertions:
+                ; $0026 = 0x01
+                ; $0006 = 0x01
+
 ; test absolute (y-indexed addressing)
 
 
