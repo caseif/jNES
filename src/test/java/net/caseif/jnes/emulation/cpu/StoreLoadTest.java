@@ -33,13 +33,13 @@ import java.io.IOException;
 import static net.caseif.jnes.emulation.cpu.CpuTestHelper.loadPrg;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class StoreTest {
+public class StoreLoadTest {
 
     private static CpuInterpreter ci;
 
     @BeforeAll
     public static void init() throws IOException {
-        ci = loadPrg("/cpu_tests/store.prg");
+        ci = loadPrg("/cpu_tests/store_load.prg");
     }
 
     @Test
@@ -51,6 +51,12 @@ public class StoreTest {
         assertEquals(1, ci.memory.read(0x90));
         assertEquals(1, ci.memory.read(0xFF));
 
+        // test zero-page loading
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(1, ci.regs.getAcc());
+        assertEquals(1, ci.regs.getX());
+        assertEquals(1, ci.regs.getY());
+
         // test zero-page (x-indexed) addressing
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(1, ci.memory.read(0x12));
@@ -59,6 +65,10 @@ public class StoreTest {
         assertEquals(1, ci.memory.read(0xA1));
         assertEquals(1, ci.memory.read(0x02));
         assertEquals(1, ci.memory.read(0x11));
+
+        // test zero-page (x-indexed) loading
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(6, ci.regs.getAcc());
 
         // test absolute addressing
         CpuTestHelper.runCpuOnce(ci);

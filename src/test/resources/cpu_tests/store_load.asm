@@ -2,12 +2,8 @@
 
 ;; ACCUMULATOR TESTS
 
-; preparation
-LDA #$01        ; a = 0x01
-LDX #$02        ; x = 0x02
-LDY #$04        ; y = 0x04
-
 ; test zero-page addressing
+LDA #$01        ; a = 0x01
 STA $10         ; write a=1 to $0010
 STA $90         ; write a=1 to $0090
 STA $FF         ; write a=1 to $00FF
@@ -16,7 +12,19 @@ NOP             ; perform assertions:
                 ; $0090 = 0x01
                 ; $00FF = 0x01
 
+; test loading
+LDA #$00        ; a = 0x00
+LDA $10         ; a = $10 = 0x01
+LDX $90         ; a = $90 = 0x01
+LDY $FF         ; a = $90 = 0x01
+NOP             ; perform assertions:
+                ; a = 0x01
+                ; x = 0x01
+                ; y = 0x01
+
 ; test zero-page (x-indexed) addressing
+LDA #$01        ; a = 0x01
+LDX #$02        ; x = 0x02
 STA $10,X       ; write a=1 to 10+2=$0012
 STA $90,X       ; write a=1 to 10+2=$0092
 STA $FF,X       ; write a=1 to FF+2=$0001 (should wrap around)
@@ -31,8 +39,21 @@ NOP             ; perform assertions:
                 ; $00A1 = 0x01
                 ; $0001 = 0x01
                 ; $0011 = 0x01
+; test loading
+LDA #$00        ; a = 0x00
+LDX #$02        ; x = 0x02
+ADC $10,X       ; add $10=0x1 to a
+ADC $90,X       ; add $92=0x1 to a
+ADC $FF,X       ; add $01=0x1 to a
+LDX #$90        ; x = 0x90
+ADC $11,X       ; add $A1=0x1 to a
+ADC $72,X       ; add $01=0x1 to a
+ADC $81,X       ; add $11=0x1 to a
+NOP             ; perform assertions:
+                ; a = 6
 
 ; test absolute addressing
+LDA #$01        ; a = 0x01
 STA $0023       ; write a=1 to $0023
 STA $0303       ; write a=1 to $0303
 STA $0903       ; write a=1 to $0903 ($0103 with mirroring)

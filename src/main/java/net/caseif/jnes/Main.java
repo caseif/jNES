@@ -34,6 +34,7 @@ import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.util.exception.CpuHaltedException;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -50,9 +51,14 @@ public class Main {
 
         switch (cmd) {
             case "assemble": {
-                if (args.length < 3) {
-                    System.out.println("Output file required.");
-                    return;
+                File inputFile = new File(args[1]);
+                File outputFile;
+
+                if (args.length == 3) {
+                    outputFile = new File(args[2]);
+                } else {
+                    String fileName = parseFileName(inputFile);
+                    outputFile = new File(inputFile.getParentFile(), fileName + ".prg");
                 }
 
                 try {
@@ -61,7 +67,7 @@ public class Main {
                         assembler.read(input);
                     }
 
-                    assembler.assemble(new FileOutputStream(args[2]));
+                    assembler.assemble(new FileOutputStream(outputFile));
                     break;
                 } catch (MalformedAssemblyException ex) {
                     ex.printStackTrace();
@@ -70,31 +76,41 @@ public class Main {
                 }
             }
             case "disassemble": {
-                if (args.length < 3) {
-                    System.out.println("Output file required.");
-                    return;
+                File inputFile = new File(args[1]);
+                File outputFile;
+
+                if (args.length == 3) {
+                    outputFile = new File(args[2]);
+                } else {
+                    String fileName = parseFileName(inputFile);
+                    outputFile = new File(inputFile.getParentFile(), fileName + ".asm");
                 }
 
                 PrgDisassembler disassembler = new PrgDisassembler();
-                try (FileInputStream input = new FileInputStream(args[1])) {
+                try (FileInputStream input = new FileInputStream(inputFile)) {
                     disassembler.read(input);
                 }
-                disassembler.dump(new FileOutputStream(args[2]));
+                disassembler.dump(new FileOutputStream(outputFile));
 
                 break;
             }
             case "dump": {
-                if (args.length < 3) {
-                    System.out.println("Output file required.");
-                    return;
+                File inputFile = new File(args[1]);
+                File outputFile;
+
+                if (args.length == 3) {
+                    outputFile = new File(args[2]);
+                } else {
+                    String fileName = parseFileName(inputFile);
+                    outputFile = new File(inputFile.getParentFile(), fileName + ".nesa");
                 }
 
                 Cartridge cart;
-                try (FileInputStream input = new FileInputStream(args[1])) {
+                try (FileInputStream input = new FileInputStream(inputFile)) {
                     cart = new RomLoader().load(input);
                 }
 
-                new RomDumper(cart).dump(new FileOutputStream(args[2]));
+                new RomDumper(cart).dump(new FileOutputStream(outputFile));
 
                 break;
             }
@@ -127,6 +143,19 @@ public class Main {
                 break;
             }
         }
+    }
+
+    private static String parseFileName(File inputFile) {
+        if (!inputFile.getName().contains(".")) {
+            return inputFile.getName();
+        }
+
+        String[] split = inputFile.getName().split("\\.");
+        StringBuilder fileNameB = new StringBuilder();
+        for (int i = 0; i < split.length - 1; i++) {
+            fileNameB.append(split[i]);
+        }
+        return fileNameB.toString();
     }
 
 }

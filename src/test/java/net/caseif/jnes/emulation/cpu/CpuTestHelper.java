@@ -39,7 +39,7 @@ import java.io.IOException;
 public class CpuTestHelper {
 
     static CpuInterpreter loadPrg(String file) throws IOException {
-        byte[] prg = IoHelper.toBuffer(StoreTest.class.getResourceAsStream(file)).array();
+        byte[] prg = IoHelper.toBuffer(StoreLoadTest.class.getResourceAsStream(file)).array();
         byte[] prgExtended = new byte[16384];
         System.arraycopy(prg, 0, prgExtended, 0, prg.length);
         Cartridge cart = new Cartridge(prgExtended, new byte[0], Cartridge.MirroringMode.HORIZONTAL, false, false, (byte) 0);
