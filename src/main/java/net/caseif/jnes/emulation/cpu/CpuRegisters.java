@@ -78,4 +78,13 @@ public class CpuRegisters {
     public void setY(byte val) {
         y = val;
     }
+
+    public enum Register {
+        A,
+        X,
+        Y,
+        PC,
+        SP
+    }
+
 }

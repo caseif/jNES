@@ -25,6 +25,9 @@
 
 package net.caseif.jnes.emulation.cpu;
 
+import static net.caseif.jnes.emulation.cpu.CpuRegisters.Register.A;
+import static net.caseif.jnes.emulation.cpu.CpuRegisters.Register.X;
+import static net.caseif.jnes.emulation.cpu.CpuRegisters.Register.Y;
 import static net.caseif.jnes.util.MathHelper.unsign;
 
 import net.caseif.jnes.model.Cartridge;
@@ -73,14 +76,20 @@ public class CpuInterpreter {
             case LDA:
                 regs.setAcc(m);
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             case LDX:
                 regs.setX(m);
+
+                setZeroAndNegFlags(X);
+
                 break;
             case LDY:
                 regs.setY(m);
+
+                setZeroAndNegFlags(Y);
+
                 break;
             case STA:
                 memory.write(addr, (byte) regs.getAcc());
@@ -93,23 +102,32 @@ public class CpuInterpreter {
                 break;
             case TAX:
                 regs.setX((byte) regs.getAcc());
+
+                setZeroAndNegFlags(X);
+
                 break;
             case TAY:
                 regs.setY((byte) regs.getAcc());
+
+                setZeroAndNegFlags(Y);
+
                 break;
             case TSX:
                 regs.setX((byte) regs.getSp());
+
+                setZeroAndNegFlags(X);
+
                 break;
             case TXA:
                 regs.setAcc((byte) regs.getX());
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             case TYA:
                 regs.setAcc((byte) regs.getX());
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             case TXS:
@@ -120,7 +138,7 @@ public class CpuInterpreter {
                 byte acc0 = (byte) regs.getAcc();
                 regs.setAcc((byte) (acc0 + m));
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 boolean carry = (acc0 >> 7) + (m >> 7) + (((regs.getAcc() & 0x40) & (m & 0x40)) >> 6) > 1;
                 if (carry) {
@@ -141,7 +159,7 @@ public class CpuInterpreter {
                 byte acc0 = (byte) regs.getAcc();
                 regs.setAcc((byte) (acc0 - m));
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 boolean borrow = (acc0 >> 7) + ((255 - m) >> 7) + (((regs.getAcc() & 0x40) & ((255 - m) & 0x40)) >> 6) <= 1;
                 if (borrow) {
@@ -189,25 +207,25 @@ public class CpuInterpreter {
             case EOR:
                 regs.setAcc((byte) (regs.getAcc() ^ m));
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             case ORA:
                 regs.setAcc((byte) (regs.getAcc() | m));
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             case ROL:
                 shift(instr, false, true, m, addr);
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             case ROR:
                 shift(instr, true, true, m, addr);
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             // branching
@@ -313,7 +331,7 @@ public class CpuInterpreter {
             case PLA:
                 regs.setAcc(memory.pop(regs));
 
-                setZeroFlag();
+                setZeroAndNegFlags(A);
 
                 break;
             case PLP:
@@ -356,11 +374,38 @@ public class CpuInterpreter {
         }
     }
 
-    private void setZeroFlag() {
-        if (regs.getAcc() == 0) {
+    private void setZeroAndNegFlags(CpuRegisters.Register reg) {
+        short val = getVal(reg);
+        setZeroFlag(val);
+        setNegFlag(val);
+    }
+
+    private void setZeroFlag(short res) {
+        if (res == 0) {
             status.setFlag(CpuStatus.Flag.ZERO);
         } else {
             status.clearFlag(CpuStatus.Flag.ZERO);
+        }
+    }
+
+    private void setNegFlag(short res) {
+        if ((res & 0x80) != 0) {
+            status.setFlag(CpuStatus.Flag.NEGATIVE);
+        } else {
+            status.clearFlag(CpuStatus.Flag.NEGATIVE);
+        }
+    }
+
+    private short getVal(CpuRegisters.Register reg) throws IllegalArgumentException {
+        switch (reg) {
+            case A:
+                return regs.getAcc();
+            case X:
+                return regs.getX();
+            case Y:
+                return regs.getY();
+            default:
+                throw new IllegalArgumentException("Invalid register " + reg.name());
         }
     }
 
@@ -378,26 +423,39 @@ public class CpuInterpreter {
     }
 
     private void shift(Instruction instr, boolean right, boolean rotate, byte m, short addr) {
+        // fetch the target value either from the accumulator or from memory
         byte val = instr.getAddressingMode() == AddressingMode.IMP ? (byte) regs.getAcc() : m;
 
+        // rotation mask - contains information about the carry bit
+        byte rMask = 0;
+        if (rotate) {
+            // set if only if we're rotating
+            rMask = (byte) (status.getFlag(CpuStatus.Flag.CARRY) ? 1 : 0);
+            if (right) {
+                // if we're rotating to the right, the carry bit gets copied to bit 7
+                rMask <<= 7;
+            }
+        }
+
+        // set the new carry flag based on whether bit 7 of the target value is set
         if ((val & 0x80) != 0) {
             status.setFlag(CpuStatus.Flag.CARRY);
         } else {
             status.clearFlag(CpuStatus.Flag.CARRY);
         }
 
-        byte rMask = 0;
-        if (rotate) {
-            rMask = (byte) (status.getFlag(CpuStatus.Flag.CARRY) ? 1 : 0);
-            if (right) {
-                rMask <<= 7;
-            }
-        }
+        // compute the result by shifting and applying the rotation mask
+        byte res = (byte) ((right ? (regs.getAcc() >> 1) : (regs.getAcc() << 1)) | rMask);
 
+        // set the zero and negative flags based on the result
+        setZeroFlag(res);
+        setNegFlag(res);
+
+        // write the result to either the accumulator or to memory, depending on the addressing mode
         if (instr.getAddressingMode() == AddressingMode.IMP) {
-            regs.setAcc((byte) ((right ? (regs.getAcc() >> 1) : (regs.getAcc() << 1)) | rMask));
+            regs.setAcc(res);
         } else {
-            memory.write(addr, (byte) ((right ? (m >> 1) : (m << 1)) | rMask));
+            memory.write(addr, res);
         }
     }
 
