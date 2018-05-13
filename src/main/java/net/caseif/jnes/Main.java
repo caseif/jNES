@@ -58,7 +58,7 @@ public class Main {
                     outputFile = new File(args[2]);
                 } else {
                     String fileName = parseFileName(inputFile);
-                    outputFile = new File(inputFile.getParentFile(), fileName + ".prg");
+                    outputFile = new File(inputFile.getParentFile(), fileName + ".bin");
                 }
 
                 try {

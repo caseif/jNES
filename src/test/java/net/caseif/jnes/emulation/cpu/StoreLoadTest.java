@@ -39,7 +39,7 @@ public class StoreLoadTest {
 
     @BeforeAll
     public static void init() throws IOException {
-        ci = loadPrg("/cpu_tests/store_load.prg");
+        ci = loadPrg("/cpu_tests/store_load.bin");
     }
 
     @Test

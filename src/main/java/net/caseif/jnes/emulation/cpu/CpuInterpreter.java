@@ -51,8 +51,8 @@ public class CpuInterpreter {
         Instruction instr = null;
         try {
             instr = Instruction.fromOpcode(readPrg());
-            //System.out.println("Executing instruction " + instr.getOpcode().name()
-            //        + " @ $" + String.format("%02X", regs.getPc() - 1));
+            System.out.println("Executing instruction " + instr.getOpcode().name()
+                    + " @ $" + String.format("%02X", regs.getPc() - 1));
             tick0(instr);
         } catch (CpuHaltedException ex) {
             throw ex;
@@ -72,6 +72,9 @@ public class CpuInterpreter {
             // storage
             case LDA:
                 regs.setAcc(m);
+
+                setZeroFlag();
+
                 break;
             case LDX:
                 regs.setX(m);
@@ -99,9 +102,15 @@ public class CpuInterpreter {
                 break;
             case TXA:
                 regs.setAcc((byte) regs.getX());
+
+                setZeroFlag();
+
                 break;
             case TYA:
                 regs.setAcc((byte) regs.getX());
+
+                setZeroFlag();
+
                 break;
             case TXS:
                 regs.setSp((byte) regs.getX());
@@ -110,6 +119,8 @@ public class CpuInterpreter {
             case ADC: {
                 byte acc0 = (byte) regs.getAcc();
                 regs.setAcc((byte) (acc0 + m));
+
+                setZeroFlag();
 
                 boolean carry = (acc0 >> 7) + (m >> 7) + (((regs.getAcc() & 0x40) & (m & 0x40)) >> 6) > 1;
                 if (carry) {
@@ -128,7 +139,9 @@ public class CpuInterpreter {
             }
             case SBC: {
                 byte acc0 = (byte) regs.getAcc();
-                regs.setAcc((byte) (acc0 + m));
+                regs.setAcc((byte) (acc0 - m));
+
+                setZeroFlag();
 
                 boolean borrow = (acc0 >> 7) + ((255 - m) >> 7) + (((regs.getAcc() & 0x40) & ((255 - m) & 0x40)) >> 6) <= 1;
                 if (borrow) {
@@ -175,14 +188,27 @@ public class CpuInterpreter {
                 break;
             case EOR:
                 regs.setAcc((byte) (regs.getAcc() ^ m));
+
+                setZeroFlag();
+
                 break;
             case ORA:
                 regs.setAcc((byte) (regs.getAcc() | m));
+
+                setZeroFlag();
+
+                break;
             case ROL:
                 shift(instr, false, true, m, addr);
+
+                setZeroFlag();
+
                 break;
             case ROR:
                 shift(instr, true, true, m, addr);
+
+                setZeroFlag();
+
                 break;
             // branching
             case BCC:
@@ -226,7 +252,8 @@ public class CpuInterpreter {
                 }
                 break;
             case JMP:
-                regs.setPc(m);
+                int target = memory.read(addr) + (memory.read((short) (addr + 1)) << 8);
+                regs.setPc((short) target);
                 break;
             case JSR:
                 memory.push(regs, (byte) (((regs.getPc() >> 8) & 0xFF) - 1)); // push MSB of PC
@@ -285,6 +312,9 @@ public class CpuInterpreter {
                 break;
             case PLA:
                 regs.setAcc(memory.pop(regs));
+
+                setZeroFlag();
+
                 break;
             case PLP:
                 status.deserialize(memory.pop(regs));
@@ -323,6 +353,14 @@ public class CpuInterpreter {
 
         if (regs.getPc() - 0x8000 >= cart.getPrgRom().length) {
             throw new CpuHaltedException();
+        }
+    }
+
+    private void setZeroFlag() {
+        if (regs.getAcc() == 0) {
+            status.setFlag(CpuStatus.Flag.ZERO);
+        } else {
+            status.clearFlag(CpuStatus.Flag.ZERO);
         }
     }
 
@@ -368,7 +406,7 @@ public class CpuInterpreter {
     }
 
     /**
-     * Returns value M, along with the address it twas obtained from, if applicable.
+     * Returns value M, along with the address it twas read from, if applicable.
      * @param mode
      * @return
      */

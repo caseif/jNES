@@ -32,6 +32,7 @@ import net.caseif.jnes.model.cpu.Instruction;
 import net.caseif.jnes.model.cpu.Opcode;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
 import net.caseif.jnes.util.tuple.Pair;
+import net.caseif.jnes.util.tuple.Triple;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -73,12 +74,12 @@ public class PrgAssembler {
     );
 
     private List<Pair<Instruction, Object>> prg;
-    private Map<String, Integer> labels;
+    private Map<String, Integer> vars;
 
     public void read(InputStream input) throws IOException, MalformedAssemblyException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
             prg = new ArrayList<>();
-            labels = new HashMap<>();
+            vars = new HashMap<>();
 
             String line;
             int lineNum = 0;
@@ -97,7 +98,7 @@ public class PrgAssembler {
                 String label = m.group(1);
 
                 if (label != null) {
-                    labels.put(label, addr);
+                    vars.put(label, addr);
                 }
 
                 String opcodeStr = m.group(2);
@@ -108,7 +109,13 @@ public class PrgAssembler {
                 }
 
                 try {
-                    Opcode opcode = Opcode.valueOf(opcodeStr);
+                    Opcode opcode;
+                    try {
+                        opcode = Opcode.valueOf(opcodeStr);
+                    } catch (IllegalArgumentException ex) {
+                        throw new MalformedAssemblyException("Invalid opcode " + opcodeStr + " on line " + lineNum + ".");
+                    }
+
                     AddressingMode mode = null;
 
                     Object val = null;
@@ -135,7 +142,7 @@ public class PrgAssembler {
                         }
 
                         if (mode == null) {
-                            throw new MalformedAssemblyException("Bad value `" + valStr + "` on line " + lineNum + ".");
+                            throw new MalformedAssemblyException("Malformed value `" + valStr + "` on line " + lineNum + ".");
                         }
                     } else {
                         mode = AddressingMode.IMP;
@@ -156,11 +163,19 @@ public class PrgAssembler {
 
     public void assemble(OutputStream output) throws IOException, MalformedAssemblyException {
         Preconditions.checkState(prg != null, "No program loaded.");
+
+        ByteArrayOutputStream intermediate = new ByteArrayOutputStream();
+
+        // location, length, name
+        List<Triple<Integer, Integer, String>> varRefs = new ArrayList<>();
+
         int addr = 0;
-        int i = 0;
+        int line = 0;
+        int pc = 0;
         for (Pair<Instruction, Object> p : prg) {
-            i++;
-            output.write(Instruction.getOpcode(p.first()));
+            line++;
+            intermediate.write(Instruction.getOpcode(p.first()));
+            pc++;
             int val;
             if (p.second() == null) {
                 val = 0;
@@ -169,23 +184,56 @@ public class PrgAssembler {
             } else {
                 assert p.second() instanceof String;
                 if (p.first().getOpcode() == Opcode.JMP || p.first().getOpcode() == Opcode.JSR) {
-                    val = labels.get(p.second());
+                    varRefs.add(Triple.of(pc, 2, (String) p.second()));
+                    //val = vars.get((String) p.second());
+                    val = 0;
                 } else {
-                    val = labels.get(p.second()) - addr;
+                    val = vars.get((String) p.second()) - addr - p.first().getLength();
                     if (val < Byte.MIN_VALUE || val > Byte.MAX_VALUE) {
-                        throw new MalformedAssemblyException("Bad reference to label at instruction " + i
+                        throw new MalformedAssemblyException("Bad reference to label at instruction " + line
                                 + " (offset too great).");
                     }
                 }
             }
             addr += p.first().getLength();
             if (p.first().getLength() == 2) {
-                output.write(val);
+                intermediate.write(val);
+                pc++;
             } else if (p.first().getLength() == 3) {
-                output.write(val);      // write low bits
-                output.write(val >> 8); // write high bits
+                intermediate.write(val & 0xFF);      // write low bits
+                intermediate.write(val >> 8); // write high bits
+                pc += 2;
             }
         }
+
+        Map<String, Integer> varAddrs = new HashMap<>();
+
+
+        final int OFFSET = 0x8000; //TODO: read this from a .org directive
+
+        for (Map.Entry<String, Integer> var : vars.entrySet()) {
+            int val = var.getValue() + OFFSET;
+
+            //TODO: handle variable-length variables
+            intermediate.write(val & 0xFF); // write low bits
+            intermediate.write(val >> 8); // write high bits
+            varAddrs.put(var.getKey(), pc);
+            pc += 2;
+        }
+
+        byte[] bytes = intermediate.toByteArray();
+
+        for (Triple<Integer, Integer, String> ref : varRefs) {
+            int address = varAddrs.get(ref.third()) + OFFSET;
+
+            for (int i = 0; i < ref.second(); i++) {
+                byte part = (byte) ((address >> (8 * i)) & 0xFF);
+                bytes[ref.first() + i] = part;
+            }
+        }
+
+        output.write(bytes);
+
         output.close();
     }
 
