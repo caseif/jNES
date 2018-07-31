@@ -1,4 +1,5 @@
 ; test branching
+; test JMP
 LDA #$00            ; reset registers
 LDX #$00
 JMP skip1           ; skip next instruction
@@ -8,6 +9,7 @@ NOP                 ; perform assertions:
                     ; a = 0x01
                     ; x = 0x00
 
+; test BEQ
 LDX #$00            ; reset X register
 SBC #$01            ; subtract 1 from a
 BEQ skip2           ; skip next instruction if a=1
@@ -17,6 +19,7 @@ NOP                 ; perform assertions:
                     ; a = 0x01
                     ; x = 0x00
 
+; test BNE, BMI, BPL
 SBC #$02            ; subtract 2 from a
 BNE skip3           ; skip next instruction if a != 0
 LDX #$01            ; set X register (this shouldn't execute)

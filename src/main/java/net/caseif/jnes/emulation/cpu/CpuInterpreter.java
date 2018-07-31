@@ -295,7 +295,7 @@ public class CpuInterpreter {
                 status.clearFlag(CpuStatus.Flag.CARRY);
                 break;
             case CLD:
-                // no-op
+                // no-op since decimal mode is unimplemented
                 break;
             case CLI:
                 status.clearFlag(CpuStatus.Flag.INTERRUPT_DISABLE);
@@ -316,7 +316,7 @@ public class CpuInterpreter {
                 status.setFlag(CpuStatus.Flag.CARRY);
                 break;
             case SED:
-                // no-op
+                // no-op since decimal mode is unimplemented
                 break;
             case SEI:
                 status.setFlag(CpuStatus.Flag.INTERRUPT_DISABLE);
