@@ -25,7 +25,11 @@
 
 package net.caseif.jnes.model.cpu;
 
-import static net.caseif.jnes.model.cpu.Mnemonic.Type.*;
+import static net.caseif.jnes.model.cpu.Mnemonic.Type.BRANCH;
+import static net.caseif.jnes.model.cpu.Mnemonic.Type.NONE;
+import static net.caseif.jnes.model.cpu.Mnemonic.Type.R;
+import static net.caseif.jnes.model.cpu.Mnemonic.Type.RW;
+import static net.caseif.jnes.model.cpu.Mnemonic.Type.W;
 
 public enum Mnemonic {
 

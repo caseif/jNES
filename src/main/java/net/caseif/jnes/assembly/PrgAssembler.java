@@ -25,14 +25,14 @@
 
 package net.caseif.jnes.assembly;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
 import net.caseif.jnes.model.cpu.Mnemonic;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
 import net.caseif.jnes.util.tuple.Pair;
-import net.caseif.jnes.util.tuple.Triple;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

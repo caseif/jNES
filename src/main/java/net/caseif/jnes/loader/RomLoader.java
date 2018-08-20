@@ -25,14 +25,13 @@
 
 package net.caseif.jnes.loader;
 
+import static net.caseif.jnes.util.IoHelper.toBuffer;
+
 import net.caseif.jnes.model.Cartridge;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-
-import static net.caseif.jnes.util.IoHelper.toBuffer;
 
 public class RomLoader {
 

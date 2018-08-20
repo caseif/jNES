@@ -25,12 +25,19 @@
 
 package net.caseif.jnes.disassembly;
 
-import com.google.common.collect.ImmutableSet;
+import static net.caseif.jnes.util.IoHelper.toBuffer;
+
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
 import net.caseif.jnes.model.cpu.Mnemonic;
 
-import java.io.*;
+import com.google.common.collect.ImmutableSet;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -39,8 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static net.caseif.jnes.util.IoHelper.toBuffer;
 
 public class PrgDisassembler {
 

@@ -25,7 +25,6 @@
 
 package net.caseif.jnes;
 
-import javax.annotation.Nullable;
 import net.caseif.jnes.assembly.PrgAssembler;
 import net.caseif.jnes.disassembly.PrgDisassembler;
 import net.caseif.jnes.disassembly.RomDumper;
@@ -35,10 +34,6 @@ import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.util.exception.CpuHaltedException;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,6 +41,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import javax.annotation.Nullable;
 
 public class Main {
 
@@ -124,7 +121,7 @@ public class Main {
             }
             case "emulate": {
                 Cartridge cart;
-                try (FileInputStream input = new FileInputStream(args[1])) {
+                try (InputStream input = Files.newInputStream(Paths.get(args[1]))) {
                     cart = new RomLoader().load(input);
                 }
 
