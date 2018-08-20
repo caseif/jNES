@@ -32,7 +32,7 @@ tasks.withType(JavaCompile) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.6'
+    gradleVersion = '4.9'
 }
 
 license {
@@ -45,11 +45,11 @@ repositories {
 }
 
 dependencies {
-    shadow 'com.google.guava:guava:24.1-jre'
+    shadow 'com.google.guava:guava:26.0-jre'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.2.0'
 
-    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
 }
 
 jar.manifest.mainAttributes(
