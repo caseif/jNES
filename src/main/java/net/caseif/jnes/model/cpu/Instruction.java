@@ -30,7 +30,6 @@ import static net.caseif.jnes.model.cpu.Opcode.*;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import net.caseif.jnes.util.CollectionHelper;
 
 import java.util.HashMap;
 import java.util.List;
@@ -94,7 +93,7 @@ public class Instruction {
 
         INSTR_LIST = IntStream.range(0, 256)
                 .mapToObj(i -> Instruction.of(OPCODE_LIST.get(i), ADDR_MODE_LIST.get(i)))
-                .collect(CollectionHelper.toImmutableList());
+                .collect(ImmutableList.toImmutableList());
 
         OPCODE_MAP = IntStream.range(0, 256).boxed().collect(Collectors.toMap(INSTR_LIST::get, i -> i, (a, b) -> a));
     }

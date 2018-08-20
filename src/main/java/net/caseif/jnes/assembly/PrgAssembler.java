@@ -188,7 +188,7 @@ public class PrgAssembler {
                     //val = vars.get((String) p.second());
                     val = 0;
                 } else {
-                    val = vars.get((String) p.second()) - addr - p.first().getLength();
+                    val = vars.get(p.second()) - addr - p.first().getLength();
                     if (val < Byte.MIN_VALUE || val > Byte.MAX_VALUE) {
                         throw new MalformedAssemblyException("Bad reference to label at instruction " + line
                                 + " (offset too great).");
