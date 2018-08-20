@@ -25,9 +25,9 @@
 
 package net.caseif.jnes.model.cpu;
 
-import static net.caseif.jnes.model.cpu.Opcode.Type.*;
+import static net.caseif.jnes.model.cpu.Mnemonic.Type.*;
 
-public enum Opcode {
+public enum Mnemonic {
 
     // storage
     /**
@@ -306,7 +306,7 @@ public enum Opcode {
 
     private final Type type;
 
-    Opcode(Type type) {
+    Mnemonic(Type type) {
         this.type = type;
     }
 

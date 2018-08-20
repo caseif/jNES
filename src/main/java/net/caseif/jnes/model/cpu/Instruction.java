@@ -26,7 +26,7 @@
 package net.caseif.jnes.model.cpu;
 
 import static net.caseif.jnes.model.cpu.AddressingMode.*;
-import static net.caseif.jnes.model.cpu.Opcode.*;
+import static net.caseif.jnes.model.cpu.Mnemonic.*;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -39,19 +39,19 @@ import java.util.stream.IntStream;
 
 public class Instruction {
 
-    private static final Map<Opcode, Map<AddressingMode, Instruction>> CACHE = new HashMap<>();
+    private static final Map<Mnemonic, Map<AddressingMode, Instruction>> CACHE = new HashMap<>();
 
-    private static final List<Opcode> OPCODE_LIST;
+    private static final List<Mnemonic> MNEMONIC_LIST;
     private static final List<AddressingMode> ADDR_MODE_LIST;
 
     private static final List<Instruction> INSTR_LIST;
     private static final Map<Instruction, Integer> OPCODE_MAP;
 
-    private final Opcode opcode;
+    private final Mnemonic mnemonic;
     private final AddressingMode addrMode;
 
     static {
-        OPCODE_LIST = ImmutableList.of(
+        MNEMONIC_LIST = ImmutableList.of(
                 BRK, ORA, KIL, SLO, NOP, ORA, ASL, SLO, PHP, ORA, ASL, ANC, NOP, ORA, ASL, SLO,
                 BPL, ORA, KIL, SLO, NOP, ORA, ASL, SLO, CLC, ORA, NOP, SLO, NOP, ORA, ASL, SLO,
                 JSR, AND, KIL, RLA, BIT, AND, ROL, RLA, PLP, AND, ROL, ANC, BIT, AND, ROL, RLA,
@@ -88,24 +88,24 @@ public class Instruction {
                 REL, IZY, IMP, IZY, ZPX, ZPX, ZPX, ZPX, IMP, ABY, IMP, ABY, ABX, ABX, ABX, ABX
         );
 
-        assert OPCODE_LIST.size() == 256;
+        assert MNEMONIC_LIST.size() == 256;
         assert ADDR_MODE_LIST.size() == 256;
 
         INSTR_LIST = IntStream.range(0, 256)
-                .mapToObj(i -> Instruction.of(OPCODE_LIST.get(i), ADDR_MODE_LIST.get(i)))
+                .mapToObj(i -> Instruction.of(MNEMONIC_LIST.get(i), ADDR_MODE_LIST.get(i)))
                 .collect(ImmutableList.toImmutableList());
 
         OPCODE_MAP = IntStream.range(0, 256).boxed().collect(Collectors.toMap(INSTR_LIST::get, i -> i, (a, b) -> a));
     }
 
-    private Instruction(Opcode opcode, AddressingMode addrMode) {
-        this.opcode = opcode;
+    private Instruction(Mnemonic mnemonic, AddressingMode addrMode) {
+        this.mnemonic = mnemonic;
         this.addrMode = addrMode;
-        CACHE.computeIfAbsent(opcode, oc -> new HashMap<>()).put(addrMode, this);
+        CACHE.computeIfAbsent(mnemonic, oc -> new HashMap<>()).put(addrMode, this);
     }
 
-    public Opcode getOpcode() {
-        return opcode;
+    public Mnemonic getMnemonic() {
+        return mnemonic;
     }
 
     public AddressingMode getAddressingMode() {
@@ -121,23 +121,23 @@ public class Instruction {
         return INSTR_LIST.get(opcodei);
     }
 
-    public static short getOpcode(Instruction instr) {
-        Preconditions.checkArgument(OPCODE_MAP.containsKey(instr), "Bad instruction " + instr);
-        return OPCODE_MAP.get(instr).shortValue();
+    public short getOpcode() {
+        Preconditions.checkArgument(OPCODE_MAP.containsKey(this), "Bad instruction " + this);
+        return OPCODE_MAP.get(this).shortValue();
     }
 
-    public static Instruction of(Opcode opcode, AddressingMode mode) {
-        if (CACHE.containsKey(opcode)) {
-            if (CACHE.get(opcode).containsKey(mode)) {
-                return CACHE.get(opcode).get(mode);
+    public static Instruction of(Mnemonic mnemonic, AddressingMode mode) {
+        if (CACHE.containsKey(mnemonic)) {
+            if (CACHE.get(mnemonic).containsKey(mode)) {
+                return CACHE.get(mnemonic).get(mode);
             }
         }
-        return new Instruction(opcode, mode);
+        return new Instruction(mnemonic, mode);
     }
 
     @Override
     public String toString() {
-        return opcode.name() + "_" + addrMode.name();
+        return mnemonic.name() + "_" + addrMode.name();
     }
 
 }

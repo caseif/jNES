@@ -65,7 +65,7 @@ public class RomDumper {
                     byte opcode = prgBuf.get();
                     Instruction instr = Instruction.fromOpcode(opcode);
 
-                    sb.append(instr.getOpcode().name()).append("_").append(instr.getAddressingMode().name());
+                    sb.append(instr.getMnemonic().name()).append("_").append(instr.getAddressingMode().name());
 
                     if (instr.getLength() > 1) {
                         sb.append(" $");

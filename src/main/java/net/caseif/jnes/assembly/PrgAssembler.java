@@ -29,12 +29,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
-import net.caseif.jnes.model.cpu.Opcode;
+import net.caseif.jnes.model.cpu.Mnemonic;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
 import net.caseif.jnes.util.tuple.Pair;
 import net.caseif.jnes.util.tuple.Triple;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -109,9 +114,9 @@ public class PrgAssembler {
                 }
 
                 try {
-                    Opcode opcode;
+                    Mnemonic mnemonic;
                     try {
-                        opcode = Opcode.valueOf(opcodeStr);
+                        mnemonic = Mnemonic.valueOf(opcodeStr);
                     } catch (IllegalArgumentException ex) {
                         throw new MalformedAssemblyException("Invalid opcode " + opcodeStr + " on line " + lineNum + ".");
                     }
@@ -127,15 +132,15 @@ public class PrgAssembler {
                                 mode = p.second();
                                 if (p.first() == MODE_ABS_LABEL_PATTERN) {
                                     val = vm.group(1);
-                                    if (opcode.getType() != Opcode.Type.BRANCH) {
+                                    if (mnemonic.getType() != Mnemonic.Type.BRANCH) {
                                         throw new MalformedAssemblyException("Label cannot be applied to non-branch "
                                                 + "instruction on line " + lineNum + ".");
                                     }
                                 } else {
                                     val = Integer.parseInt(vm.group(1), 16);
                                 }
-                                if (mode == AddressingMode.ABS && (opcode.getType() == Opcode.Type.BRANCH
-                                        && opcode != Opcode.JMP && opcode != Opcode.JSR)) {
+                                if (mode == AddressingMode.ABS && (mnemonic.getType() == Mnemonic.Type.BRANCH
+                                        && mnemonic != Mnemonic.JMP && mnemonic != Mnemonic.JSR)) {
                                     mode = AddressingMode.REL;
                                 }
                             }
@@ -148,11 +153,17 @@ public class PrgAssembler {
                         mode = AddressingMode.IMP;
                     }
 
-                    Instruction instr = Instruction.of(opcode, mode);
+                    Instruction instr = Instruction.of(mnemonic, mode);
 
                     addr += instr.getLength();
 
-                    Instruction.getOpcode(instr);
+                    // verify the instruction is valid
+                    try {
+                        instr.getOpcode();
+                    } catch (IllegalArgumentException ex) {
+                        throw new MalformedAssemblyException("Invalid instruction `" + instr + "` on line " + lineNum + ".", ex);
+                    }
+
                     prg.add(Pair.of(instr, val));
                 } catch (IllegalArgumentException ex) {
                     throw new MalformedAssemblyException("Cannot parse line " + lineNum + ".", ex);
@@ -167,14 +178,14 @@ public class PrgAssembler {
         ByteArrayOutputStream intermediate = new ByteArrayOutputStream();
 
         // location, length, name
-        List<Triple<Integer, Integer, String>> varRefs = new ArrayList<>();
+        List<LocationReference> varRefs = new ArrayList<>();
 
         int addr = 0;
         int line = 0;
         int pc = 0;
         for (Pair<Instruction, Object> p : prg) {
             line++;
-            intermediate.write(Instruction.getOpcode(p.first()));
+            intermediate.write(p.first().getOpcode());
             pc++;
             int val;
             if (p.second() == null) {
@@ -183,19 +194,21 @@ public class PrgAssembler {
                 val = (Integer) p.second();
             } else {
                 assert p.second() instanceof String;
-                if (p.first().getOpcode() == Opcode.JMP || p.first().getOpcode() == Opcode.JSR) {
-                    varRefs.add(Triple.of(pc, 2, (String) p.second()));
+                if (p.first().getMnemonic() == Mnemonic.JMP || p.first().getMnemonic() == Mnemonic.JSR) {
+                    varRefs.add(new LocationReference((String) p.second(), pc, 2));
                     //val = vars.get((String) p.second());
                     val = 0;
                 } else {
-                    val = vars.get(p.second()) - addr - p.first().getLength();
+                    val = vars.get((String) p.second()) - addr - p.first().getLength();
                     if (val < Byte.MIN_VALUE || val > Byte.MAX_VALUE) {
                         throw new MalformedAssemblyException("Bad reference to label at instruction " + line
                                 + " (offset too great).");
                     }
                 }
             }
+
             addr += p.first().getLength();
+
             if (p.first().getLength() == 2) {
                 intermediate.write(val);
                 pc++;
@@ -215,26 +228,54 @@ public class PrgAssembler {
             int val = var.getValue() + OFFSET;
 
             //TODO: handle variable-length variables
+
             intermediate.write(val & 0xFF); // write low bits
             intermediate.write(val >> 8); // write high bits
+
             varAddrs.put(var.getKey(), pc);
+
             pc += 2;
         }
 
         byte[] bytes = intermediate.toByteArray();
 
-        for (Triple<Integer, Integer, String> ref : varRefs) {
-            int address = varAddrs.get(ref.third()) + OFFSET;
+        for (LocationReference ref : varRefs) {
+            int address = varAddrs.get(ref.getName()) + OFFSET;
 
-            for (int i = 0; i < ref.second(); i++) {
+            for (int i = 0; i < ref.getLength(); i++) {
                 byte part = (byte) ((address >> (8 * i)) & 0xFF);
-                bytes[ref.first() + i] = part;
+                bytes[ref.getLocation() + i] = part;
             }
         }
 
         output.write(bytes);
 
         output.close();
+    }
+
+    private class LocationReference {
+
+        private final String name;
+        private final int location;
+        private final int length;
+
+        private LocationReference(String name, int location, int length) {
+            this.name = name;
+            this.location = location;
+            this.length = length;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getLocation() {
+            return location;
+        }
+
+        public int getLength() {
+            return length;
+        }
     }
 
 }

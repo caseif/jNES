@@ -28,7 +28,7 @@ package net.caseif.jnes.disassembly;
 import com.google.common.collect.ImmutableSet;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
-import net.caseif.jnes.model.cpu.Opcode;
+import net.caseif.jnes.model.cpu.Mnemonic;
 
 import java.io.*;
 import java.nio.BufferUnderflowException;
@@ -44,8 +44,8 @@ import static net.caseif.jnes.util.IoHelper.toBuffer;
 
 public class PrgDisassembler {
 
-    private static final Set<Opcode> BRANCH_INSTRS = ImmutableSet.of(
-            Opcode.BCC, Opcode.BCS, Opcode.BEQ, Opcode.BMI, Opcode.BNE, Opcode.BPL, Opcode.BVC, Opcode.BVS
+    private static final Set<Mnemonic> BRANCH_INSTRS = ImmutableSet.of(
+            Mnemonic.BCC, Mnemonic.BCS, Mnemonic.BEQ, Mnemonic.BMI, Mnemonic.BNE, Mnemonic.BPL, Mnemonic.BVC, Mnemonic.BVS
     );
 
     private ByteBuffer prgBuf;
@@ -83,7 +83,7 @@ public class PrgDisassembler {
 
                 Instruction instr = Instruction.fromOpcode(opcode);
 
-                sb.append(instr.getOpcode().name());
+                sb.append(instr.getMnemonic().name());
 
                 if (instr.getLength() > 1) {
                     sb.append(' ');
@@ -92,7 +92,7 @@ public class PrgDisassembler {
                     //
                     // we generate intermediate label indices based on the order
                     // we discover them, then reorganize them later
-                    if (BRANCH_INSTRS.contains(instr.getOpcode())) {
+                    if (BRANCH_INSTRS.contains(instr.getMnemonic())) {
                         // generate a placeholder
                         sb.append("{{").append(nextLabelIndex).append("}}");
 

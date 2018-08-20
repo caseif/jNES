@@ -27,7 +27,7 @@ package net.caseif.jnes.emulation.cpu;
 
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.model.cpu.Instruction;
-import net.caseif.jnes.model.cpu.Opcode;
+import net.caseif.jnes.model.cpu.Mnemonic;
 import net.caseif.jnes.util.IoHelper;
 import net.caseif.jnes.util.exception.CpuHaltedException;
 
@@ -51,7 +51,7 @@ public class CpuTestHelper {
         try {
             do {
                 ci.tick();
-            } while (Instruction.fromOpcode(ci.peekPrg()).getOpcode() != Opcode.NOP);
+            } while (Instruction.fromOpcode(ci.peekPrg()).getMnemonic() != Mnemonic.NOP);
         } catch (CpuHaltedException ex) {
             System.out.println(ci.regs.getPc());
             fail("CPU halted prematurely.");

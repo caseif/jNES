@@ -54,7 +54,7 @@ public class CpuInterpreter {
         Instruction instr = null;
         try {
             instr = Instruction.fromOpcode(readPrg());
-            System.out.println("Executing instruction " + instr.getOpcode().name()
+            System.out.println("Executing instruction " + instr.getMnemonic().name()
                     + " @ $" + String.format("%02X", regs.getPc() - 1));
             tick0(instr);
         } catch (CpuHaltedException ex) {
@@ -71,7 +71,7 @@ public class CpuInterpreter {
         byte m = mp.first();
         short addr = mp.second();
 
-        switch (instr.getOpcode()) {
+        switch (instr.getMnemonic()) {
             // storage
             case LDA:
                 regs.setAcc(m);
