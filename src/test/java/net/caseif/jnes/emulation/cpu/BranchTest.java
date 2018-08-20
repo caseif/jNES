@@ -53,6 +53,10 @@ public class BranchTest {
         assertEquals(1, ci.regs.getAcc());
         assertEquals(0, ci.regs.getX());
 
+        // test JSR
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(7, ci.regs.getX());
+
         // test BEQ
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(1, ci.regs.getAcc());

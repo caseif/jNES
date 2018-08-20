@@ -277,20 +277,30 @@ public class CpuInterpreter {
                 regs.setPc(addr);
                 break;
             case JSR:
-                memory.push(regs, (byte) (((regs.getPc() >> 8) & 0xFF) - 1)); // push MSB of PC
-                memory.push(regs, (byte) ((regs.getPc() & 0xFF) - 1)); // push LSB of PC
+                int pc = regs.getPc() - 1;
+
+                memory.push(regs, (byte) (((pc >> 8) & 0xFF) )); // push MSB of PC
+                memory.push(regs, (byte) ((pc & 0xFF)));        // push LSB of PC
+
+                regs.setPc(addr);
+
                 break;
             case RTS: {
                 byte pcl = memory.pop(regs); // pop LSB of PC
                 byte pcm = memory.pop(regs); // pop MSB of PC
-                regs.setPc((short) ((pcm & pcl) + 1));
+
+                regs.setPc((short) (((pcm << 8) | pcl) + 1));
+
                 break;
             }
             case RTI: {
                 status.deserialize(memory.pop(regs)); // pop flags
+
                 byte pcl = memory.pop(regs); // pop LSB of PC
                 byte pcm = memory.pop(regs); // pop MSB of PC
+
                 regs.setPc((short) ((pcm & pcl) + 1));
+
                 break;
             }
             // registers

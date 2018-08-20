@@ -37,6 +37,24 @@ NOP                 ; perform assertions:
                     ; x = 0x00
 
 ;;;;;;;;;;;;;;;;
+; test JSR
+;;;;;;;;;;;;;;;;
+
+LDX #$05            ; set x
+JSR subroutine      ; jump to subroutine
+INX                 ; increment X
+JMP end_jsr_test
+
+subroutine: INX     ; increment X
+            RTS     ; return
+
+LDX #$00            ; reset X (shouldn't execute)
+
+end_jsr_test:
+NOP                 ; perform assertions:
+                    ; x = 0x07
+
+;;;;;;;;;;;;;;;;
 ; test BEQ
 ;;;;;;;;;;;;;;;;
 
