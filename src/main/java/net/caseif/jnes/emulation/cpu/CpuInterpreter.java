@@ -129,7 +129,7 @@ public class CpuInterpreter {
 
                 break;
             case TYA:
-                regs.setAcc((byte) regs.getX());
+                regs.setAcc((byte) regs.getY());
 
                 setZeroAndNegFlags(A);
 

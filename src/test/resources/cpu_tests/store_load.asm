@@ -1,8 +1,19 @@
-;;; STORE TESTS
+;;;;;;;;;;;;;;;;
+;;; store/load tests
+;;;;;;;;;;;;;;;;
 
-;; ACCUMULATOR TESTS
+;;;;;;;;;;;;;;;;
+;; accumulator tests
+;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;
 ; test zero-page addressing
+;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;
+; test storing
+;;;;;;;;;;;;;;;;
+
 LDA #$01        ; a = 0x01
 STA $10         ; write a=1 to $0010
 STA $90         ; write a=1 to $0090
@@ -12,7 +23,10 @@ NOP             ; perform assertions:
                 ; $0090 = 0x01
                 ; $00FF = 0x01
 
+;;;;;;;;;;;;;;;;
 ; test loading
+;;;;;;;;;;;;;;;;
+
 LDA #$00        ; a = 0x00
 LDA $10         ; a = $10 = 0x01
 LDX $90         ; a = $90 = 0x01
@@ -22,7 +36,14 @@ NOP             ; perform assertions:
                 ; x = 0x01
                 ; y = 0x01
 
+;;;;;;;;;;;;;;;;
 ; test zero-page (x-indexed) addressing
+;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;
+; test storing
+;;;;;;;;;;;;;;;;
+
 LDA #$01        ; a = 0x01
 LDX #$02        ; x = 0x02
 STA $10,X       ; write a=1 to 10+2=$0012
@@ -39,7 +60,11 @@ NOP             ; perform assertions:
                 ; $00A1 = 0x01
                 ; $0001 = 0x01
                 ; $0011 = 0x01
+
+;;;;;;;;;;;;;;;;
 ; test loading
+;;;;;;;;;;;;;;;;
+
 LDA #$00        ; a = 0x00
 LDX #$02        ; x = 0x02
 ADC $10,X       ; add $10=0x1 to a
@@ -52,7 +77,10 @@ ADC $81,X       ; add $11=0x1 to a
 NOP             ; perform assertions:
                 ; a = 6
 
+;;;;;;;;;;;;;;;;
 ; test absolute addressing
+;;;;;;;;;;;;;;;;
+
 LDA #$01        ; a = 0x01
 STA $0023       ; write a=1 to $0023
 STA $0303       ; write a=1 to $0303
@@ -71,7 +99,10 @@ NOP             ; perform assertions:
                 ; $0203 = 0x01
                 ; $0303 = 0x01
 
+;;;;;;;;;;;;;;;;
 ; test absolute (x-indexed) addressing
+;;;;;;;;;;;;;;;;
+
 LDX #$02        ; x = 0x02
 STA $0023,X     ; write a=1 to 23+2=$0025
 STA $0303,X     ; write a=1 to 303+2=$0305
@@ -90,9 +121,13 @@ NOP             ; perform assertions:
                 ; $0305 = 0x01
                 ; $0005 = 0x01
 
+;;;;;;;;;;;;;;;;
 ; test absolute (y-indexed) addressing
+;;;;;;;;;;;;;;;;
+
 ; these tests are less exhaustive since most of the implementation is shared
 ; with absolute (x-indexed) mode
+
 LDY #$07        ; y = 0x08
 STA $001F,Y     ; write a=1 to 1F+7=$0026
 STA $FFFF,Y     ; write a=1 to FFFF+7=$0006 (wraparound)
@@ -100,7 +135,10 @@ NOP             ; perform assertions:
                 ; $0026 = 0x01
                 ; $0006 = 0x01
 
+;;;;;;;;;;;;;;;;
 ; test indexed indirect addressing
+;;;;;;;;;;;;;;;;
+
 LDA #$13        ; a = 0x13
 STA $08         ; write a=0x13 to $0008
 STA $0A         ; write a=0x13 to $000A
@@ -119,8 +157,12 @@ NOP             ; perform assertions:
                 ; 0x1302 = 0x01
                 ; $0403 = 0x01
 
+;;;;;;;;;;;;;;;;
 ; test indirect indexed addressing
+;;;;;;;;;;;;;;;;
+
 ; memory is already set up from previous test
+
 LDY #$02        ; y = 0x02
 STA ($08),Y     ; write a=1 to $0008 -> 0213+2=$0215
 STA ($09),Y     ; write a=1 to $0009 -> 1302+2=$1304
@@ -128,13 +170,21 @@ NOP             ; perform assertions:
                 ; $0215 = 0x01
                 ; $1304 = 0x01
 
-;;; X REGISTER TESTS
+;;;;;;;;;;;;;;;;
+; X register tests
+;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;
 ; preparation
+;;;;;;;;;;;;;;;;
+
 LDX #$02        ; x = 0x02
 LDY #$04        ; y = 0x04
 
+;;;;;;;;;;;;;;;;
 ; test zero-page addressing
+;;;;;;;;;;;;;;;;
+
 STX $10         ; write x=2 to $0010
 STX $90         ; write x=2 to $0090
 STX $FF         ; write x=2 to $00FF
@@ -143,7 +193,10 @@ NOP             ; perform assertions:
                 ; $0090 = 0x02
                 ; $00FF = 0x02
 
+;;;;;;;;;;;;;;;;
 ; test zero-page (y-indexed) addressing
+;;;;;;;;;;;;;;;;
+
 STX $10,Y       ; write x=2 to 10+4=$0014
 STX $90,Y       ; write x=2 to 10+4=$0094
 STX $FF,Y       ; write x=2 to FF+4=$0003 (should wrap around)
@@ -159,12 +212,20 @@ NOP             ; perform assertions:
                 ; $0000 = 0x02
                 ; $0020 = 0x02
 
-;;; Y REGISTER TESTS
+;;;;;;;;;;;;;;;;
+; Y register tests
+;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;
 ; preparation
+;;;;;;;;;;;;;;;;
+
 LDY #$04        ; y = 0x04
 
+;;;;;;;;;;;;;;;;
 ; test zero-page addressing
+;;;;;;;;;;;;;;;;
+
 STY $10         ; write x=4 to $0010
 STY $90         ; write x=4 to $0090
 STY $FF         ; write x=4 to $00FF
@@ -172,5 +233,23 @@ NOP             ; perform assertions:
                 ; $0010 = 0x04
                 ; $0090 = 0x04
                 ; $00FF = 0x04
+
+;;;;;;;;;;;;;;;;
+; basic transfer tests
+;;;;;;;;;;;;;;;;
+
+LDA #$00        ; reset acc
+LDX #$42        ; set x=0x42
+LDY #$52        ; set x=0x52
+
+TXA             ; copy X to acc
+STA $08         ; write acc to $0008
+
+TYA             ; copy Y to acc
+STA $09         ; write acc to $0009
+
+NOP             ; perform assertions:
+                ; $0008 = 0x42
+                ; $0009 = 0x52
 
 ; remaining instruction+addressing combos are redundant due to shared implementations

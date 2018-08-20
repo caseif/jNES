@@ -125,6 +125,11 @@ public class StoreLoadTest {
         assertEquals(4, ci.memory.read(0x10));
         assertEquals(4, ci.memory.read(0x90));
         assertEquals(4, ci.memory.read(0xFF));
+
+        // transfer tests
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(0x42, ci.memory.read(0x08));
+        assertEquals(0x52, ci.memory.read(0x09));
     }
 
 }
