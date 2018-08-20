@@ -46,11 +46,11 @@ public class CpuStatus {
     }
 
     public byte serialize() {
-        return Arrays.stream(Flag.values()).map(this::shift).reduce((byte) 0, (r, b) -> (byte) (r & b));
+        return Arrays.stream(Flag.values()).map(this::shift).reduce((byte) 0, (r, b) -> (byte) (r | b));
     }
 
     public void deserialize(byte serial) {
-        Arrays.stream(Flag.values()).forEach(f -> flags.put(f, (serial | (1 << f.getPosition())) != 0));
+        Arrays.stream(Flag.values()).forEach(f -> flags.put(f, (serial & (1 << f.getPosition())) != 0));
     }
 
     private byte shift(Flag flag) {

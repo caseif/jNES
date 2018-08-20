@@ -50,6 +50,10 @@ public class CpuInterpreter {
         this.memory = new CpuMemory(cart);
     }
 
+    public CpuStatus getStatus() {
+        return status;
+    }
+
     public void tick() throws CpuHaltedException {
         Instruction instr = null;
         try {
