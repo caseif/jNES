@@ -25,6 +25,7 @@
 
 package net.caseif.jnes;
 
+import javax.annotation.Nullable;
 import net.caseif.jnes.assembly.PrgAssembler;
 import net.caseif.jnes.disassembly.PrgDisassembler;
 import net.caseif.jnes.disassembly.RomDumper;
@@ -37,9 +38,18 @@ import net.caseif.jnes.util.exception.MalformedAssemblyException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
+
+    private static final DirectoryStream.Filter<Path> ASM_FILTER = p -> p.getFileName().toString().endsWith(".asm");
 
     public static void main(String[] args) throws IOException {
         if (args.length < 2 || args.length > 3) {
@@ -51,66 +61,64 @@ public class Main {
 
         switch (cmd) {
             case "assemble": {
-                File inputFile = new File(args[1]);
-                File outputFile;
+                Path inputPath = Paths.get(args[1]);
+                Path outputPath = null;
 
                 if (args.length == 3) {
-                    outputFile = new File(args[2]);
-                } else {
-                    String fileName = parseFileName(inputFile);
-                    outputFile = new File(inputFile.getParentFile(), fileName + ".bin");
+                    outputPath = Paths.get(args[2]);
                 }
 
                 try {
-                    PrgAssembler assembler = new PrgAssembler();
-                    try (FileInputStream input = new FileInputStream(args[1])) {
-                        assembler.read(input);
-                    }
-
-                    assembler.assemble(new FileOutputStream(outputFile));
-                    break;
+                    assemble(inputPath, outputPath);
                 } catch (MalformedAssemblyException ex) {
                     ex.printStackTrace();
                     System.err.println("Failed to assemble program.");
-                    return;
                 }
+
+                break;
             }
             case "disassemble": {
-                File inputFile = new File(args[1]);
-                File outputFile;
+                Path inputPath = Paths.get(args[1]);
+                Path outputPath;
 
                 if (args.length == 3) {
-                    outputFile = new File(args[2]);
+                    outputPath = Paths.get(args[2]);
                 } else {
-                    String fileName = parseFileName(inputFile);
-                    outputFile = new File(inputFile.getParentFile(), fileName + ".asm");
+                    String fileName = parseFileName(inputPath);
+                    outputPath = inputPath.getParent().resolve(fileName + ".asm");
                 }
 
                 PrgDisassembler disassembler = new PrgDisassembler();
-                try (FileInputStream input = new FileInputStream(inputFile)) {
-                    disassembler.read(input);
+
+                try (InputStream inputStream = Files.newInputStream(inputPath)) {
+                    disassembler.read(inputStream);
                 }
-                disassembler.dump(new FileOutputStream(outputFile));
+
+                try (OutputStream outputStream = Files.newOutputStream(outputPath)) {
+                    disassembler.dump(outputStream);
+                }
 
                 break;
             }
             case "dump": {
-                File inputFile = new File(args[1]);
-                File outputFile;
+                Path inputPath = Paths.get(args[1]);
+                Path outputPath;
 
                 if (args.length == 3) {
-                    outputFile = new File(args[2]);
+                    outputPath = Paths.get(args[2]);
                 } else {
-                    String fileName = parseFileName(inputFile);
-                    outputFile = new File(inputFile.getParentFile(), fileName + ".nesa");
+                    String fileName = parseFileName(inputPath);
+                    outputPath = inputPath.getParent().resolve(fileName + ".nesa");
                 }
 
                 Cartridge cart;
-                try (FileInputStream input = new FileInputStream(inputFile)) {
-                    cart = new RomLoader().load(input);
+                try (InputStream inputStream = Files.newInputStream(inputPath)) {
+                    cart = new RomLoader().load(inputStream);
                 }
 
-                new RomDumper(cart).dump(new FileOutputStream(outputFile));
+                try (OutputStream outputStream = Files.newOutputStream(outputPath)) {
+                    new RomDumper(cart).dump(outputStream);
+                }
 
                 break;
             }
@@ -145,12 +153,39 @@ public class Main {
         }
     }
 
-    private static String parseFileName(File inputFile) {
-        if (!inputFile.getName().contains(".")) {
-            return inputFile.getName();
+    private static void assemble(Path inputPath, @Nullable Path outputPath) throws IOException, MalformedAssemblyException {
+        if (!Files.exists(inputPath)) {
+            throw new IOException("No such file " + inputPath.toString() + ".");
         }
 
-        String[] split = inputFile.getName().split("\\.");
+        if (Files.isDirectory(inputPath)) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(inputPath, ASM_FILTER)) {
+                for (Path child : stream) {
+                    assemble(child, null);
+                }
+            }
+        } else {
+            PrgAssembler assembler = new PrgAssembler();
+
+            try (InputStream input = Files.newInputStream(inputPath)) {
+                assembler.read(input);
+            }
+
+            if (outputPath == null) {
+                String fileName = parseFileName(inputPath);
+                outputPath = inputPath.getParent().resolve(fileName + ".bin");
+            }
+
+            assembler.assemble(Files.newOutputStream(outputPath));
+        }
+    }
+
+    private static String parseFileName(Path inputPath) {
+        if (!inputPath.getFileName().toString().contains(".")) {
+            return inputPath.getFileName().toString();
+        }
+
+        String[] split = inputPath.getFileName().toString().split("\\.");
         StringBuilder fileNameB = new StringBuilder();
         for (int i = 0; i < split.length - 1; i++) {
             fileNameB.append(split[i]);
