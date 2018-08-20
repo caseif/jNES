@@ -270,8 +270,7 @@ public class CpuInterpreter {
                 }
                 break;
             case JMP:
-                int target = memory.read(addr) + (memory.read((short) (addr + 1)) << 8);
-                regs.setPc((short) target);
+                regs.setPc(addr);
                 break;
             case JSR:
                 memory.push(regs, (byte) (((regs.getPc() >> 8) & 0xFF) - 1)); // push MSB of PC
@@ -506,7 +505,7 @@ public class CpuInterpreter {
                 short origAddr = readShort();
                 byte addrLow = memory.read(origAddr);
                 byte addrHigh = memory.read(origAddr + 1);
-                short addr = (short) (addrLow & (addrHigh << 8));
+                short addr = (short) (addrLow | (addrHigh << 8));
                 return Pair.of(memory.read(addr), addr);
             }
             case IZX: {

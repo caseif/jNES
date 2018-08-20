@@ -106,19 +106,19 @@ public class PrgAssembler {
                     vars.put(label, addr);
                 }
 
-                String opcodeStr = m.group(2);
+                String mnemonicStr = m.group(2);
                 String valStr = m.group(3);
 
-                if (opcodeStr == null) {
+                if (mnemonicStr == null) {
                     continue;
                 }
 
                 try {
                     Mnemonic mnemonic;
                     try {
-                        mnemonic = Mnemonic.valueOf(opcodeStr);
+                        mnemonic = Mnemonic.valueOf(mnemonicStr);
                     } catch (IllegalArgumentException ex) {
-                        throw new MalformedAssemblyException("Invalid opcode " + opcodeStr + " on line " + lineNum + ".");
+                        throw new MalformedAssemblyException("Invalid mnemonic " + mnemonicStr + " on line " + lineNum + ".");
                     }
 
                     AddressingMode mode = null;
@@ -177,8 +177,7 @@ public class PrgAssembler {
 
         ByteArrayOutputStream intermediate = new ByteArrayOutputStream();
 
-        // location, length, name
-        List<LocationReference> varRefs = new ArrayList<>();
+        final int OFFSET = 0x8000; //TODO: read this from a .org directive
 
         int addr = 0;
         int line = 0;
@@ -195,14 +194,12 @@ public class PrgAssembler {
             } else {
                 assert p.second() instanceof String;
                 if (p.first().getMnemonic() == Mnemonic.JMP || p.first().getMnemonic() == Mnemonic.JSR) {
-                    varRefs.add(new LocationReference((String) p.second(), pc, 2));
-                    //val = vars.get((String) p.second());
-                    val = 0;
+                    val = vars.get((String) p.second()) + OFFSET;
                 } else {
                     val = vars.get((String) p.second()) - addr - p.first().getLength();
                     if (val < Byte.MIN_VALUE || val > Byte.MAX_VALUE) {
                         throw new MalformedAssemblyException("Bad reference to label at instruction " + line
-                                + " (offset too great).");
+                                + " (offset too large).");
                     }
                 }
             }
@@ -219,34 +216,7 @@ public class PrgAssembler {
             }
         }
 
-        Map<String, Integer> varAddrs = new HashMap<>();
-
-
-        final int OFFSET = 0x8000; //TODO: read this from a .org directive
-
-        for (Map.Entry<String, Integer> var : vars.entrySet()) {
-            int val = var.getValue() + OFFSET;
-
-            //TODO: handle variable-length variables
-
-            intermediate.write(val & 0xFF); // write low bits
-            intermediate.write(val >> 8); // write high bits
-
-            varAddrs.put(var.getKey(), pc);
-
-            pc += 2;
-        }
-
         byte[] bytes = intermediate.toByteArray();
-
-        for (LocationReference ref : varRefs) {
-            int address = varAddrs.get(ref.getName()) + OFFSET;
-
-            for (int i = 0; i < ref.getLength(); i++) {
-                byte part = (byte) ((address >> (8 * i)) & 0xFF);
-                bytes[ref.getLocation() + i] = part;
-            }
-        }
 
         output.write(bytes);
 

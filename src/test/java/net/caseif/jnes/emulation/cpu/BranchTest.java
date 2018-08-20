@@ -44,6 +44,10 @@ public class BranchTest {
 
     @Test
     public void testBranch() {
+        // test JMP (indirect)
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(0, ci.regs.getX());
+
         // test JMP
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(1, ci.regs.getAcc());

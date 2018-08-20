@@ -53,8 +53,7 @@ public class CpuTestHelper {
                 ci.tick();
             } while (Instruction.fromOpcode(ci.peekPrg()).getMnemonic() != Mnemonic.NOP);
         } catch (CpuHaltedException ex) {
-            System.out.println(ci.regs.getPc());
-            fail("CPU halted prematurely.");
+            fail("CPU halted prematurely (PC=" + ci.regs.getPc() + ").");
         }
     }
 
