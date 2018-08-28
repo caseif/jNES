@@ -25,16 +25,14 @@
 
 package net.caseif.jnes.emulation.cpu;
 
-import static net.caseif.jnes.emulation.cpu.CpuRegisters.Register.A;
-import static net.caseif.jnes.emulation.cpu.CpuRegisters.Register.X;
-import static net.caseif.jnes.emulation.cpu.CpuRegisters.Register.Y;
-import static net.caseif.jnes.util.MathHelper.unsign;
-
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
 import net.caseif.jnes.util.exception.CpuHaltedException;
 import net.caseif.jnes.util.tuple.Pair;
+
+import static net.caseif.jnes.emulation.cpu.CpuRegisters.Register.*;
+import static net.caseif.jnes.util.MathHelper.unsign;
 
 public class CpuInterpreter {
 
@@ -140,17 +138,25 @@ public class CpuInterpreter {
             // math
             case ADC: {
                 byte acc0 = (byte) regs.getAcc();
-                regs.setAcc((byte) (acc0 + m));
+
+                int c = status.getFlag(CpuStatus.Flag.CARRY) ? 1 : 0;
+
+                regs.setAcc((byte) (acc0 + m + c));
 
                 setZeroAndNegFlags(A);
 
-                boolean carry = (acc0 >> 7) + (m >> 7) + (((regs.getAcc() & 0x40) & (m & 0x40)) >> 6) > 1;
+                byte a7 = (byte) (acc0 >> 7);
+                byte m7 = (byte) (m >> 7);
+
+                // unsigned overflow will occur if at least two among the most significant operand bits and the carry bit are set
+                boolean carry = ((a7 & m7) | (a7 & c) | (m7 & c)) != 0;
                 if (carry) {
                     status.setFlag(CpuStatus.Flag.CARRY);
                 } else {
                     status.clearFlag(CpuStatus.Flag.CARRY);
                 }
 
+                // signed overflow will occur if the sign of both inputs if different from the sign of the result
                 boolean overflow = ((acc0 ^ regs.getAcc()) & (m ^ regs.getAcc()) & 0x80) != 0;
                 if (overflow) {
                     status.setFlag(CpuStatus.Flag.OVERFLOW);
