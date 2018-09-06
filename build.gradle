@@ -31,10 +31,6 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.9'
-}
-
 license {
     header getRootProject().file('HEADER.txt')
     exclude '**/lib/**/*.java'
@@ -86,4 +82,8 @@ shadowJar {
 artifacts {
     archives shadowJar
     archives sourceJar
+}
+
+wrapper {
+    gradleVersion = '4.10'
 }
