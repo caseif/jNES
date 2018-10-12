@@ -26,13 +26,10 @@
 package net.caseif.jnes.assembly;
 
 import net.caseif.jnes.assembly.lexer.AssemblyLexer;
-import net.caseif.jnes.assembly.lexer.token.Token;
+import net.caseif.jnes.assembly.lexer.Token;
 import net.caseif.jnes.assembly.parser.AssemblyParser;
 import net.caseif.jnes.assembly.parser.Statement;
-import net.caseif.jnes.model.cpu.Instruction;
-import net.caseif.jnes.model.cpu.Mnemonic;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
-import net.caseif.jnes.util.tuple.Pair;
 
 import com.google.common.base.Preconditions;
 

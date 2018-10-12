@@ -42,51 +42,6 @@ import java.util.Optional;
 
 public abstract class Statement {
 
-    private static final ImmutableMap<List<Expression.Type>, Type> STATEMENT_SYNTAXES = ImmutableMap.<List<Expression.Type>, Type>builder()
-            .put(ImmutableList.of(Expression.Type.COMMENT), Type.COMMENT)
-
-            .put(ImmutableList.of(Expression.Type.LABEL_DEF), Type.LABEL_DEF)
-
-            .put(ImmutableList.of(Expression.Type.MNEMONIC, Expression.Type.IMM_VALUE), Type.INSTRUCTION)
-            .put(ImmutableList.of(Expression.Type.MNEMONIC, Expression.Type.LABEL_REF), Type.INSTRUCTION)
-            .put(ImmutableList.of(Expression.Type.MNEMONIC, Expression.Type.TARGET), Type.INSTRUCTION)
-            .put(ImmutableList.of(Expression.Type.MNEMONIC), Type.INSTRUCTION)
-
-            .build();
-
-    static Optional<Pair<Statement, Integer>> nextStatement(List<Expression> exprs) {
-        if (exprs.isEmpty()) {
-            return Optional.empty();
-        }
-
-        outer:
-        for (Map.Entry<List<Expression.Type>, Type> e : STATEMENT_SYNTAXES.entrySet()) {
-            List<Object> values = new ArrayList<>();
-
-            for (int i = 0; i < e.getKey().size(); i++) {
-                Expression curExpr = exprs.get(i);
-
-                if (e.getKey().get(i) != curExpr.getType().getType()) {
-                    continue outer;
-                }
-
-                if (curExpr.getValue() != null) {
-                    values.add(curExpr.getValue());
-                }
-
-                if (curExpr.getType().getMetadata() != null) {
-                    values.add(curExpr.getType().getMetadata());
-                }
-            }
-
-            // if we've gotten this far, we've found a match
-
-            return Optional.of(Pair.of(e.getValue().constructStatement(values.toArray()), e.getKey().size()));
-        }
-
-        return Optional.empty();
-    }
-
     private final Type type;
 
     Statement(Type type) {
@@ -116,7 +71,7 @@ public abstract class Statement {
             }
         }
 
-        private Statement constructStatement(Object... values) {
+        Statement constructStatement(Object... values) {
             try {
                 return ctor.newInstance(null, (Object[]) values);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
