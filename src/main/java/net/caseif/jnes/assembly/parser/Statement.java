@@ -25,6 +25,8 @@
 
 package net.caseif.jnes.assembly.parser;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.caseif.jnes.model.cpu.AddressingMode;
@@ -38,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class Statement {
+public abstract class Statement {
 
     private static final ImmutableMap<List<Expression.Type>, Type> STATEMENT_SYNTAXES = ImmutableMap.<List<Expression.Type>, Type>builder()
             .put(ImmutableList.of(Expression.Type.COMMENT), Type.COMMENT)
@@ -85,7 +87,17 @@ public class Statement {
         return Optional.empty();
     }
 
-    enum Type {
+    private final Type type;
+
+    Statement(Type type) {
+        this.type = type;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public enum Type {
         INSTRUCTION(InstructionStatement.class),
         LABEL_DEF(LabelDefinitionStatement.class),
         COMMENT(CommentStatement.class);
@@ -113,56 +125,54 @@ public class Statement {
         }
     }
 
-    class InstructionStatement extends Statement {
+    public class InstructionStatement extends Statement {
 
         private final Mnemonic mnemonic;
         private final AddressingMode addrMode;
-        private final int targetAddr;
-        private final int immValue;
+        private final int operand;
         private final int valueSize;
 
         InstructionStatement(Object[] values) {
+            super(Type.INSTRUCTION);
+
             this.mnemonic = (Mnemonic) values[0];
             if (values.length == 3) {
+                operand = (int) values[1];
+
                 if (values[2] instanceof AddressingMode) {
-                    targetAddr = (int) values[1];
                     addrMode = (AddressingMode) values[2];
 
-                    immValue = -1;
                     valueSize = 0;
                 } else {
-                    immValue = (int) values[1];
                     valueSize = (int) values[2];
 
-                    targetAddr = -1;
                     addrMode = AddressingMode.IMM;
                 }
             } else {
                 addrMode = AddressingMode.IMP;
 
-                targetAddr = -1;
-                immValue = -1;
+                operand = 0;
                 valueSize = 0;
             }
         }
 
-        Mnemonic getMnemonic() {
+        public Mnemonic getMnemonic() {
             return mnemonic;
         }
 
-        AddressingMode getAddressingMode() {
+        public AddressingMode getAddressingMode() {
             return addrMode;
         }
 
-        int getTargetAddress() {
-            return targetAddr;
+        public int getOperand() {
+            checkState(addrMode != AddressingMode.IMP, "Cannot get operand for implicit instruction.");
+
+            return operand;
         }
 
-        int getImmediateValue() {
-            return immValue;
-        }
+        public int getImmediateValueSize() {
+            checkState(addrMode == AddressingMode.IMM, "Cannot get immediate value size for non-immediate instruction.");
 
-        int getValueSize() {
             return valueSize;
         }
 
@@ -173,10 +183,12 @@ public class Statement {
         private final String id;
 
         LabelDefinitionStatement(Object[] values) {
+            super(Type.LABEL_DEF);
+
             this.id = (String) values[0];
         }
 
-        String getId() {
+        public String getId() {
             return id;
         }
 
@@ -185,6 +197,7 @@ public class Statement {
     public class CommentStatement extends Statement {
 
         CommentStatement(Object[] values) {
+            super(Type.COMMENT);
         }
 
     }

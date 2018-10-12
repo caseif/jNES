@@ -29,8 +29,14 @@ import net.caseif.jnes.assembly.lexer.AssemblyLexer;
 import net.caseif.jnes.assembly.lexer.token.Token;
 import net.caseif.jnes.assembly.parser.AssemblyParser;
 import net.caseif.jnes.assembly.parser.Statement;
+import net.caseif.jnes.model.cpu.Instruction;
+import net.caseif.jnes.model.cpu.Mnemonic;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
+import net.caseif.jnes.util.tuple.Pair;
 
+import com.google.common.base.Preconditions;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,7 +57,44 @@ public class NewAssembler {
     }
 
     public void assemble(OutputStream output) throws IOException, MalformedAssemblyException {
-        //TODO
+        Preconditions.checkState(statements != null, "No program loaded.");
+
+        ByteArrayOutputStream intermediate = new ByteArrayOutputStream();
+
+        final int OFFSET = 0x8000; //TODO: read this from a .org directive
+
+        int pc = 0;
+
+        for (Statement stmt : statements) {
+            switch (stmt.getType()) {
+                case INSTRUCTION: {
+                    Statement.InstructionStatement instrStmt = (Statement.InstructionStatement) stmt;
+
+                    //TODO
+
+                    break;
+                }
+                case LABEL_DEF: {
+                    Statement.LabelDefinitionStatement lblStmt = (Statement.LabelDefinitionStatement) stmt;
+
+                    //TODO
+
+                    break;
+                }
+                case COMMENT: {
+                    continue;
+                }
+                default: {
+                    throw new AssertionError("Unhandled case " + stmt.getType().name());
+                }
+            }
+        }
+
+        byte[] bytes = intermediate.toByteArray();
+
+        output.write(bytes);
+
+        output.close();
     }
 
 }
