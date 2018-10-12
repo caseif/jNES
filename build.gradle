@@ -5,8 +5,8 @@ plugins {
     id 'eclipse'
 
     id 'jacoco'
-    id 'net.minecrell.licenser' version '0.3'
-    id 'com.github.johnrengelman.shadow' version '2.0.2'
+    id 'net.minecrell.licenser' version '0.4.1'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
 defaultTasks 'clean', 'updateLicenses', 'build', 'jacocoTestReport', 'shadowJar'
@@ -43,9 +43,9 @@ repositories {
 dependencies {
     shadow 'com.google.guava:guava:26.0-jre'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.2.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
 
-    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
 }
 
 jar.manifest.mainAttributes(
@@ -85,5 +85,5 @@ artifacts {
 }
 
 wrapper {
-    gradleVersion = '4.10'
+    gradleVersion = '4.10.2'
 }
