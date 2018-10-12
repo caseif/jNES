@@ -25,6 +25,7 @@
 
 package net.caseif.jnes;
 
+import net.caseif.jnes.assembly.NewAssembler;
 import net.caseif.jnes.assembly.PrgAssembler;
 import net.caseif.jnes.disassembly.PrgDisassembler;
 import net.caseif.jnes.disassembly.RomDumper;
@@ -162,7 +163,7 @@ public class Main {
                 }
             }
         } else {
-            PrgAssembler assembler = new PrgAssembler();
+            NewAssembler assembler = new NewAssembler();
 
             try (InputStream input = Files.newInputStream(inputPath)) {
                 assembler.read(input);

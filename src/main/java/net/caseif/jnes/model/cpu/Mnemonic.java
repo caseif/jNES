@@ -26,6 +26,7 @@
 package net.caseif.jnes.model.cpu;
 
 import static net.caseif.jnes.model.cpu.Mnemonic.Type.BRANCH;
+import static net.caseif.jnes.model.cpu.Mnemonic.Type.JUMP;
 import static net.caseif.jnes.model.cpu.Mnemonic.Type.NONE;
 import static net.caseif.jnes.model.cpu.Mnemonic.Type.R;
 import static net.caseif.jnes.model.cpu.Mnemonic.Type.RW;
@@ -193,12 +194,12 @@ public enum Mnemonic {
     /**
      * Jumps to an address.
      */
-    JMP(BRANCH),
+    JMP(JUMP),
     /**
      * Pushes the address of the next operation minus one to the stack, then
      * jumps to an address.
      */
-    JSR(BRANCH),
+    JSR(JUMP),
     /**
      * Returns from an interrupt, pulling processor flags followed by the
      * program counter from the stack.
@@ -321,6 +322,7 @@ public enum Mnemonic {
     public enum Type {
         NONE,
         BRANCH,
+        JUMP,
         R,
         W,
         RW;

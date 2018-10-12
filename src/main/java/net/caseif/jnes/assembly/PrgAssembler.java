@@ -132,9 +132,10 @@ public class PrgAssembler {
                                 mode = p.second();
                                 if (p.first() == MODE_ABS_LABEL_PATTERN) {
                                     val = vm.group(1);
-                                    if (mnemonic.getType() != Mnemonic.Type.BRANCH) {
-                                        throw new MalformedAssemblyException("Label cannot be applied to non-branch "
-                                                + "instruction on line " + lineNum + ".");
+                                    if (mnemonic.getType() != Mnemonic.Type.BRANCH
+                                            && mnemonic.getType() != Mnemonic.Type.JUMP) {
+                                        throw new MalformedAssemblyException("Label cannot be applied to "
+                                                + "non-branch/jump instruction on line " + lineNum + ".");
                                     }
                                 } else {
                                     val = Integer.parseInt(vm.group(1), 16);
