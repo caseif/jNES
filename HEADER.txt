@@ -1,5 +1,5 @@
 This file is a part of jNES.
-Copyright (c) 2018, Max Roncace <mproncace@gmail.com>
+Copyright (c) ${year}, ${author} <${email}>
 
 The MIT License
 
