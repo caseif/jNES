@@ -96,6 +96,10 @@ class Expression<T> {
 
         outer:
         for (Map.Entry<List<Token.Type>, TypeWithMetadata<?>> e : EXPRESSION_SYNTAXES.entrySet()) {
+            if (tokens.size() < e.getKey().size()) {
+                continue;
+            }
+
             Object value = null;
 
             for (int i = 0; i < e.getKey().size(); i++) {

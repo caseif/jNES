@@ -25,11 +25,10 @@
 
 package net.caseif.jnes.assembly.lexer.token;
 
-import com.google.common.base.Functions;
 import net.caseif.jnes.model.cpu.Mnemonic;
-import net.caseif.jnes.util.exception.LexerException;
 import net.caseif.jnes.util.tuple.Pair;
 
+import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
@@ -50,8 +49,8 @@ public class Token {
     private static final Pattern RE_MNEMONIC        = Pattern.compile("^([A-Z]{3})(?=\\s|$)");
     private static final Pattern RE_X               = Pattern.compile("^X");
     private static final Pattern RE_Y               = Pattern.compile("^Y");
-    private static final Pattern RE_LABEL_DEF       = Pattern.compile("^([A-z]+):");
-    private static final Pattern RE_LABEL_REF       = Pattern.compile("^([A-z]+)");
+    private static final Pattern RE_LABEL_DEF       = Pattern.compile("^([A-z][A-z0-9]*):");
+    private static final Pattern RE_LABEL_REF       = Pattern.compile("^([A-z][A-z0-9]*)");
     private static final Pattern RE_HEX_QWORD       = Pattern.compile("^#\\$([0-9A-F]{8})");
     private static final Pattern RE_HEX_DWORD       = Pattern.compile("^#\\$([0-9A-F]{4})");
     private static final Pattern RE_HEX_WORD        = Pattern.compile("^#\\$([0-9A-F]{2})");
