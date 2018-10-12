@@ -174,6 +174,8 @@ public class Main {
                 outputPath = inputPath.getParent().resolve(fileName + ".bin");
             }
 
+            System.out.println(outputPath);
+
             assembler.assemble(Files.newOutputStream(outputPath));
         }
     }

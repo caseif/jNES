@@ -82,7 +82,7 @@ public enum AddressingMode {
         this.length = length;
     }
 
-    int getLength() {
+    public int getLength() {
         return length;
     }
 

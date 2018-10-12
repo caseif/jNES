@@ -29,6 +29,9 @@ import net.caseif.jnes.assembly.lexer.AssemblyLexer;
 import net.caseif.jnes.assembly.lexer.Token;
 import net.caseif.jnes.assembly.parser.AssemblyParser;
 import net.caseif.jnes.assembly.parser.Statement;
+import net.caseif.jnes.model.cpu.AddressingMode;
+import net.caseif.jnes.model.cpu.Instruction;
+import net.caseif.jnes.model.cpu.Mnemonic;
 import net.caseif.jnes.util.exception.MalformedAssemblyException;
 
 import com.google.common.base.Preconditions;
@@ -37,7 +40,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class NewAssembler {
 
@@ -56,25 +62,123 @@ public class NewAssembler {
     public void assemble(OutputStream output) throws IOException, MalformedAssemblyException {
         Preconditions.checkState(statements != null, "No program loaded.");
 
+        Map<String, Integer> labelDict = buildLabelDictionary();
+
+        byte[] bytecode = generateBytecode(labelDict);
+
+        output.write(bytecode);
+
+        output.close();
+    }
+
+    private byte[] generateBytecode(Map<String, Integer> labelDict) throws MalformedAssemblyException {
         ByteArrayOutputStream intermediate = new ByteArrayOutputStream();
 
         final int OFFSET = 0x8000; //TODO: read this from a .org directive
 
-        int pc = 0;
+        int curOffset = 0;
 
         for (Statement stmt : statements) {
             switch (stmt.getType()) {
                 case INSTRUCTION: {
                     Statement.InstructionStatement instrStmt = (Statement.InstructionStatement) stmt;
 
-                    //TODO
+                    Optional<Instruction> instrOpt = Instruction.lookup(instrStmt.getMnemonic(), instrStmt.getAddressingMode());
+
+                    if (!instrOpt.isPresent()) {
+                        throw new MalformedAssemblyException(String.format(
+                                "Instruction %s cannot be used with addressing mode %s.",
+                                instrStmt.getMnemonic(), instrStmt.getAddressingMode()
+                        ));
+                    }
+
+                    intermediate.write((byte) instrOpt.get().getOpcode());
+
+                    curOffset += 1;
+
+                    int operand;
+
+                    if (instrStmt.getLabelRef().isPresent()) {
+                        int realTarget = labelDict.get(instrStmt.getLabelRef().get());
+
+                        if (instrStmt.getAddressingMode() == AddressingMode.REL) {
+                            // the offset is relative to the address following the current instruction
+                            // we've already incremented the offset by 1 for the opcode, and the
+                            // addressing mode is always relative (1 byte operand), so we can just
+                            // add 1 to the current offset to move it past the operand.
+                            operand = realTarget - (curOffset + 1);
+                        } else {
+                            operand = realTarget;
+                        }
+                    } else if (instrStmt.getAddressingMode() != AddressingMode.IMP) {
+                        operand = instrStmt.getOperand();
+                    } else {
+                        operand = -1;
+                    }
+
+                    if (instrStmt.getAddressingMode() != AddressingMode.IMP) {
+                        // we only need to adjust the operand to account for the offset if
+                        // we're jumping to an absolute address. we should keep it intact
+                        // if we're using an indirect value.
+
+                        if (instrStmt.getMnemonic().getType() == Mnemonic.Type.JUMP
+                                && instrStmt.getAddressingMode() == AddressingMode.ABS) {
+                            operand += OFFSET;
+                        }
+
+                        switch (instrStmt.getAddressingMode().getLength() - 1) {
+                            case 1:
+                                intermediate.write((byte) operand);
+
+                                break;
+                            case 2:
+                                intermediate.write((byte) (operand & 0xFF)); // write LSB
+                                intermediate.write((byte) ((operand >> 8) & 0xFF)); // write MSB
+
+                                break;
+                            default: // all 6502 addressing modes take either a word or a dword
+                                throw new AssertionError("Unhandled case " + (instrStmt.getAddressingMode().getLength() - 1));
+                        }
+
+                        curOffset += instrStmt.getAddressingMode().getLength() - 1;
+                    }
+
+                    break;
+                }
+                // skip label definitions since we already built a dictionary
+                case LABEL_DEF:
+                case COMMENT:
+                    continue;
+                default:
+                    throw new AssertionError("Unhandled case " + stmt.getType().name());
+            }
+        }
+
+        return intermediate.toByteArray();
+    }
+
+    // helper method for reading and indexing all label definitions
+    private Map<String, Integer> buildLabelDictionary() {
+        Map<String, Integer> labelDict = new HashMap<>();
+
+        int pc = 0;
+
+        // first pass, for building the label dictionary
+        for (Statement stmt : statements) {
+            switch (stmt.getType()) {
+                case INSTRUCTION: {
+                    Statement.InstructionStatement instrStmt = (Statement.InstructionStatement) stmt;
+
+                    // just increment the program counter appropriately
+                    pc += instrStmt.getAddressingMode().getLength();
 
                     break;
                 }
                 case LABEL_DEF: {
                     Statement.LabelDefinitionStatement lblStmt = (Statement.LabelDefinitionStatement) stmt;
 
-                    //TODO
+                    // add the label to the dictionary - no need to increment the PC
+                    labelDict.put(lblStmt.getId(), pc);
 
                     break;
                 }
@@ -87,11 +191,7 @@ public class NewAssembler {
             }
         }
 
-        byte[] bytes = intermediate.toByteArray();
-
-        output.write(bytes);
-
-        output.close();
+        return labelDict;
     }
 
 }

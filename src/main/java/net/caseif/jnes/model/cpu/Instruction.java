@@ -119,6 +119,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -218,6 +219,20 @@ public class Instruction {
             }
         }
         return new Instruction(mnemonic, mode);
+    }
+
+    public static Optional<Instruction> lookup(Mnemonic mnemonic, AddressingMode mode) {
+        if (!CACHE.containsKey(mnemonic) || !CACHE.get(mnemonic).containsKey(mode)) {
+            return Optional.empty();
+        }
+
+        Instruction res = CACHE.get(mnemonic).get(mode);
+
+        if (!OPCODE_MAP.containsKey(res)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(res);
     }
 
     @Override

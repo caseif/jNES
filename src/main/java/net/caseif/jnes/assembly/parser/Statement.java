@@ -27,17 +27,11 @@ package net.caseif.jnes.assembly.parser;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Mnemonic;
-import net.caseif.jnes.util.tuple.Pair;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public abstract class Statement {
@@ -85,29 +79,50 @@ public abstract class Statement {
         private final Mnemonic mnemonic;
         private final AddressingMode addrMode;
         private final int operand;
-        private final int valueSize;
+        private final int operandLength;
+        private final String labelRef;
 
         InstructionStatement(Object[] values) {
             super(Type.INSTRUCTION);
 
             this.mnemonic = (Mnemonic) values[0];
+
             if (values.length == 3) {
                 operand = (int) values[1];
 
                 if (values[2] instanceof AddressingMode) {
                     addrMode = (AddressingMode) values[2];
 
-                    valueSize = 0;
+                    operandLength = 0;
+                    labelRef = null;
                 } else {
-                    valueSize = (int) values[2];
+                    operandLength = (int) values[2];
 
                     addrMode = AddressingMode.IMM;
+                    labelRef = null;
                 }
+            } else if (values.length == 2) {
+                labelRef = (String) values[1];
+
+                switch (mnemonic.getType()) {
+                    case JUMP:
+                        addrMode = AddressingMode.ABS;
+                        break;
+                    case BRANCH:
+                        addrMode = AddressingMode.REL;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Labels may only be used with jump/branch instructions.");
+                }
+
+                operand = 0;
+                operandLength = 0;
             } else {
                 addrMode = AddressingMode.IMP;
 
                 operand = 0;
-                valueSize = 0;
+                operandLength = 0;
+                labelRef = null;
             }
         }
 
@@ -125,10 +140,14 @@ public abstract class Statement {
             return operand;
         }
 
-        public int getImmediateValueSize() {
-            checkState(addrMode == AddressingMode.IMM, "Cannot get immediate value size for non-immediate instruction.");
+        public int getOperandLength() {
+            checkState(addrMode == AddressingMode.IMM, "Cannot get operand length for non-immediate instruction.");
 
-            return valueSize;
+            return operandLength;
+        }
+
+        public Optional<String> getLabelRef() {
+            return Optional.ofNullable(labelRef);
         }
 
     }
