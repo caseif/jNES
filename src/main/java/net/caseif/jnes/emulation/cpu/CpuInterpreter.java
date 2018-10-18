@@ -488,8 +488,9 @@ public class CpuInterpreter {
             }
         }
 
-        // set the new carry flag based on whether bit 7 of the target value is set
-        if ((val & 0x80) != 0) {
+        // carry mask - set to the bit which will be copied to the carry flag
+        byte cMask = right ? (byte) 0x01 : (byte) 0x80;
+        if ((val & cMask) != 0) {
             status.setFlag(CpuStatus.Flag.CARRY);
         } else {
             status.clearFlag(CpuStatus.Flag.CARRY);
