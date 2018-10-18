@@ -27,7 +27,6 @@ package net.caseif.jnes.emulation.cpu;
 
 import static net.caseif.jnes.emulation.cpu.CpuTestHelper.loadPrg;
 import static net.caseif.jnes.emulation.cpu.CpuTestHelper.runCpuOnce;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

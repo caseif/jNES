@@ -45,7 +45,7 @@ public class AdditionTest {
     }
 
     @Test
-    public void testMath() {
+    public void testAddition() {
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(0x02, ci.regs.getAcc());
         assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));

@@ -187,22 +187,44 @@ public class CpuInterpreter {
                 break;
             }
             case DEC:
-                memory.write(addr, (byte) (m - 1));
+                short decRes = (short) (m - 1);
+
+                memory.write(addr, (byte) decRes);
+
+                setZeroAndNegFlags(decRes);
+
                 break;
             case DEX:
                 regs.setX((byte) (regs.getX() - 1));
+
+                setZeroAndNegFlags(X);
+
                 break;
             case DEY:
                 regs.setY((byte) (regs.getY() - 1));
+
+                setZeroAndNegFlags(Y);
+
                 break;
             case INC:
-                memory.write(addr, (byte) (m + 1));
+                short incRes = (short) (m + 1);
+
+                memory.write(addr, (byte) incRes);
+
+                setZeroAndNegFlags(incRes);
+
                 break;
             case INX:
                 regs.setX((byte) (regs.getX() + 1));
+
+                setZeroAndNegFlags(X);
+
                 break;
             case INY:
                 regs.setY((byte) (regs.getY() + 1));
+
+                setZeroAndNegFlags(Y);
+
                 break;
             // logic
             case AND:
@@ -394,7 +416,10 @@ public class CpuInterpreter {
     }
 
     private void setZeroAndNegFlags(CpuRegisters.Register reg) {
-        short val = getVal(reg);
+        setZeroAndNegFlags(getVal(reg));
+    }
+
+    private void setZeroAndNegFlags(short val) {
         setZeroFlag(val);
         setNegFlag(val);
     }
