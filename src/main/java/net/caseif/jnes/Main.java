@@ -25,8 +25,7 @@
 
 package net.caseif.jnes;
 
-import net.caseif.jnes.assembly.NewAssembler;
-import net.caseif.jnes.assembly.PrgAssembler;
+import net.caseif.jnes.assembly.ProgramAssembler;
 import net.caseif.jnes.disassembly.PrgDisassembler;
 import net.caseif.jnes.disassembly.RomDumper;
 import net.caseif.jnes.emulation.cpu.CpuInterpreter;
@@ -163,7 +162,7 @@ public class Main {
                 }
             }
         } else {
-            NewAssembler assembler = new NewAssembler();
+            ProgramAssembler assembler = new ProgramAssembler();
 
             try (InputStream input = Files.newInputStream(inputPath)) {
                 assembler.read(input);
