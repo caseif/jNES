@@ -43,10 +43,12 @@ public class Token {
 
     private final Type type;
     private final Object val;
+    private final int line;
 
-    Token(Type type, @Nullable Object val) {
+    Token(Type type, @Nullable Object val, int line) {
         this.type = type;
         this.val = val;
+        this.line = line;
     }
 
     public Type getType() {
@@ -55,6 +57,10 @@ public class Token {
 
     public Optional<?> getValue() {
         return Optional.ofNullable(val);
+    }
+
+    public int getLine() {
+        return line;
     }
 
     public enum Type implements ExpressionPart {

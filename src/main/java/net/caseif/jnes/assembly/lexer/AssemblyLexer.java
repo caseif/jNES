@@ -82,7 +82,7 @@ public class AssemblyLexer {
             .put(RE_RIGHT_PAREN, Token.Type.RIGHT_PAREN)
             .build();
 
-    public static Optional<Pair<Token, Integer>> nextToken(String line, int pos) {
+    public static Optional<Pair<Token, Integer>> nextToken(String line, int pos, int lineNum) {
         int skipped = 0;
 
         String substr = line.substring(pos);
@@ -116,7 +116,7 @@ public class AssemblyLexer {
                 val = null;
             }
 
-            return Optional.of(Pair.of(new Token(e.getValue(), val), len + skipped));
+            return Optional.of(Pair.of(new Token(e.getValue(), val, lineNum), len + skipped));
         }
 
         return Optional.empty();
@@ -154,7 +154,7 @@ public class AssemblyLexer {
         while (pos < line.length()) {
             Optional<Pair<Token, Integer>> token;
             try {
-                token = nextToken(line, pos);
+                token = nextToken(line, pos, lineNum);
             } catch (Throwable t) {
                 throw new LexerException(line, lineNum, pos, t);
             }

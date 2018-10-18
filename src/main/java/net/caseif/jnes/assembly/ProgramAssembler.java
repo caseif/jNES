@@ -32,7 +32,8 @@ import net.caseif.jnes.assembly.parser.Statement;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
 import net.caseif.jnes.model.cpu.Mnemonic;
-import net.caseif.jnes.util.exception.MalformedAssemblyException;
+import net.caseif.jnes.util.exception.LexerException;
+import net.caseif.jnes.util.exception.ParserException;
 
 import com.google.common.base.Preconditions;
 
@@ -49,7 +50,7 @@ public class ProgramAssembler {
 
     private List<Statement> statements;
 
-    public void read(InputStream input) throws IOException, MalformedAssemblyException {
+    public void read(InputStream input) throws IOException, LexerException, ParserException {
         System.out.println("Lexing assembly...");
 
         List<Token> tokenized = AssemblyLexer.lex(input);
@@ -59,7 +60,7 @@ public class ProgramAssembler {
         statements = AssemblyParser.parse(tokenized);
     }
 
-    public void assemble(OutputStream output) throws IOException, MalformedAssemblyException {
+    public void assemble(OutputStream output) throws IOException, ParserException {
         Preconditions.checkState(statements != null, "No program loaded.");
 
         Map<String, Integer> labelDict = buildLabelDictionary();
@@ -71,7 +72,7 @@ public class ProgramAssembler {
         output.close();
     }
 
-    private byte[] generateBytecode(Map<String, Integer> labelDict) throws MalformedAssemblyException {
+    private byte[] generateBytecode(Map<String, Integer> labelDict) throws ParserException {
         ByteArrayOutputStream intermediate = new ByteArrayOutputStream();
 
         final int OFFSET = 0x8000; //TODO: read this from a .org directive
@@ -86,10 +87,10 @@ public class ProgramAssembler {
                     Optional<Instruction> instrOpt = Instruction.lookup(instrStmt.getMnemonic(), instrStmt.getAddressingMode());
 
                     if (!instrOpt.isPresent()) {
-                        throw new MalformedAssemblyException(String.format(
+                        throw new ParserException(String.format(
                                 "Instruction %s cannot be used with addressing mode %s.",
                                 instrStmt.getMnemonic(), instrStmt.getAddressingMode()
-                        ));
+                        ), instrStmt.getLine());
                     }
 
                     intermediate.write((byte) instrOpt.get().getOpcode());
@@ -158,7 +159,7 @@ public class ProgramAssembler {
     }
 
     // helper method for reading and indexing all label definitions
-    private Map<String, Integer> buildLabelDictionary() throws MalformedAssemblyException {
+    private Map<String, Integer> buildLabelDictionary() throws ParserException {
         Map<String, Integer> labelDict = new HashMap<>();
 
         int pc = 0;
@@ -178,7 +179,7 @@ public class ProgramAssembler {
                     Statement.LabelDefinitionStatement lblStmt = (Statement.LabelDefinitionStatement) stmt;
 
                     if (labelDict.containsKey(lblStmt.getId())) {
-                        throw new MalformedAssemblyException("Found duplicate label " + lblStmt.getId() + "!");
+                        throw new ParserException("Found duplicate label " + lblStmt.getId() + "!", lblStmt.getLine());
                     }
 
                     // add the label to the dictionary - no need to increment the PC

@@ -37,13 +37,19 @@ import java.util.Optional;
 public abstract class Statement {
 
     private final Type type;
+    private final int line;
 
-    Statement(Type type) {
+    Statement(Type type, int line) {
         this.type = type;
+        this.line = line;
     }
 
     public Type getType() {
         return type;
+    }
+
+    public int getLine() {
+        return line;
     }
 
     public enum Type {
@@ -55,7 +61,7 @@ public abstract class Statement {
 
         Type(Class<? extends Statement> clazz) {
             try {
-                this.ctor = clazz.getDeclaredConstructor(Statement.class, Object[].class);
+                this.ctor = clazz.getDeclaredConstructor(Statement.class, Object[].class, int.class);
             } catch (NoSuchMethodException ex) {
                 throw new AssertionError(String.format(
                         "Supplied class %s for type %s does not have an appropriate constructor.",
@@ -65,9 +71,9 @@ public abstract class Statement {
             }
         }
 
-        Statement constructStatement(Object... values) {
+        Statement constructStatement(int line, Object... values) {
             try {
-                return ctor.newInstance(null, (Object[]) values);
+                return ctor.newInstance(null, (Object[]) values, line);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
@@ -82,8 +88,8 @@ public abstract class Statement {
         private final int operandLength;
         private final String labelRef;
 
-        InstructionStatement(Object[] values) {
-            super(Type.INSTRUCTION);
+        InstructionStatement(Object[] values, int line) {
+            super(Type.INSTRUCTION, line);
 
             this.mnemonic = (Mnemonic) values[0];
 
@@ -156,8 +162,8 @@ public abstract class Statement {
 
         private final String id;
 
-        LabelDefinitionStatement(Object[] values) {
-            super(Type.LABEL_DEF);
+        LabelDefinitionStatement(Object[] values, int line) {
+            super(Type.LABEL_DEF, line);
 
             this.id = (String) values[0];
         }
@@ -170,8 +176,8 @@ public abstract class Statement {
 
     public class CommentStatement extends Statement {
 
-        CommentStatement(Object[] values) {
-            super(Type.COMMENT);
+        CommentStatement(Object[] values, int line) {
+            super(Type.COMMENT, line);
         }
 
     }

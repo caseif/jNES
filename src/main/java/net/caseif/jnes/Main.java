@@ -32,7 +32,8 @@ import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 import net.caseif.jnes.loader.RomLoader;
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.util.exception.CpuHaltedException;
-import net.caseif.jnes.util.exception.MalformedAssemblyException;
+import net.caseif.jnes.util.exception.LexerException;
+import net.caseif.jnes.util.exception.ParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +68,7 @@ public class Main {
 
                 try {
                     assemble(inputPath, outputPath);
-                } catch (MalformedAssemblyException ex) {
+                } catch (LexerException | ParserException ex) {
                     ex.printStackTrace();
                     System.err.println("Failed to assemble program.");
                 }
@@ -150,7 +151,7 @@ public class Main {
         }
     }
 
-    private static void assemble(Path inputPath, @Nullable Path outputPath) throws IOException, MalformedAssemblyException {
+    private static void assemble(Path inputPath, @Nullable Path outputPath) throws IOException, LexerException, ParserException {
         if (!Files.exists(inputPath)) {
             throw new IOException("No such file " + inputPath.toString() + ".");
         }

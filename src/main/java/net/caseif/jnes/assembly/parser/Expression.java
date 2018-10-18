@@ -33,10 +33,12 @@ class Expression<T> {
 
     private final TypeWithMetadata<T> type;
     private final Object value;
+    private final int line;
 
-    Expression(TypeWithMetadata<T> type, @Nullable Object value) {
+    Expression(TypeWithMetadata<T> type, @Nullable Object value, int line) {
         this.type = type;
         this.value = value;
+        this.line = line;
     }
 
     TypeWithMetadata<T> getType() {
@@ -45,6 +47,10 @@ class Expression<T> {
 
     Object getValue() {
         return value;
+    }
+
+    public int getLine() {
+        return line;
     }
 
     enum Type implements ExpressionPart {

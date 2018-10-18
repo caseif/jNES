@@ -25,7 +25,7 @@
 
 package net.caseif.jnes.util.exception;
 
-public class LexerException extends MalformedAssemblyException {
+public class LexerException extends Exception {
     public LexerException(String line, int lineNum, int col, Throwable cause) {
         super(String.format("Failed to lex assembly near %d,%d.\n\n%s", lineNum, col, printProblemLine(line, col)), cause);
     }
