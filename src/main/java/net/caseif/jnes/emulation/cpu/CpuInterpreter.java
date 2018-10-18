@@ -229,6 +229,9 @@ public class CpuInterpreter {
             // logic
             case AND:
                 regs.setAcc((byte) (regs.getAcc() & m));
+
+                setZeroAndNegFlags(regs.getAcc());
+
                 break;
             case ASL:
                 shift(instr, false, false, m, addr);
