@@ -57,15 +57,28 @@ public class BranchTest {
         CpuTestHelper.runCpuOnce(ci);
         assertEquals(7, ci.regs.getX());
 
-        // test BEQ
+        // test BEQ, BNE
         CpuTestHelper.runCpuOnce(ci);
-        assertEquals(1, ci.regs.getAcc());
-        assertEquals(0, ci.regs.getX());
+        assertEquals(1, ci.regs.getX());
+        assertEquals(2, ci.regs.getY());
 
-        // test BNE, BMI, BPL
+        // test BCS, BCC
         CpuTestHelper.runCpuOnce(ci);
-        assertEquals(1, ci.regs.getAcc());
-        assertEquals(0, ci.regs.getX());
+        assertEquals(1, ci.regs.getX());
+        assertEquals(2, ci.regs.getY());
+
+        // test BPL, BMI
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(1, ci.regs.getX());
+        assertEquals(2, ci.regs.getY());
+
+        // set overflow flag explicitly so we can test branching based on its value
+        ci.getStatus().setFlag(CpuStatus.Flag.OVERFLOW);
+
+        // test BVS, BVC
+        CpuTestHelper.runCpuOnce(ci);
+        assertEquals(1, ci.regs.getX());
+        assertEquals(2, ci.regs.getY());
     }
 
 }

@@ -52,6 +52,9 @@ public class StatusTest {
         assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
         assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.INTERRUPT_DISABLE));
 
+        // set overflow flag explicitly so we can test clearing it in code
+        ci.getStatus().setFlag(CpuStatus.Flag.OVERFLOW);
+
         // test explicit flag-clearing
         runCpuOnce(ci);
         assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
