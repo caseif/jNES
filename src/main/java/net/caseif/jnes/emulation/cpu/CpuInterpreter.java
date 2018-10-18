@@ -176,9 +176,9 @@ public class CpuInterpreter {
 
                 boolean borrow = (acc0 >> 7) + ((255 - m) >> 7) + (((regs.getAcc() & 0x40) & ((255 - m) & 0x40)) >> 6) <= 1;
                 if (borrow) {
-                    status.clearFlag(CpuStatus.Flag.CARRY);
-                } else {
                     status.setFlag(CpuStatus.Flag.CARRY);
+                } else {
+                    status.clearFlag(CpuStatus.Flag.CARRY);
                 }
 
                 boolean overflow = ((acc0 ^ regs.getAcc()) & ((255 - m) ^ regs.getAcc()) & 0x80) != 0;

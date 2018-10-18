@@ -46,7 +46,7 @@ public class LogicTest {
     }
 
     @Test
-    public void testArithmetic() {
+    public void testLogic() {
         // test AND
 
         runCpuOnce(ci);
