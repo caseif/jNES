@@ -122,8 +122,8 @@ public class AssemblyLexer {
         return Optional.empty();
     }
 
-    public static List<List<Token>> lex(InputStream input) throws IOException, LexerException {
-        List<List<Token>> lines = new ArrayList<>();
+    public static List<Token> lex(InputStream input) throws IOException, LexerException {
+        List<Token> tokens = new ArrayList<>();
 
         StringBuilder lineBuilder = new StringBuilder();
 
@@ -133,7 +133,7 @@ public class AssemblyLexer {
         while ((b = input.read()) != -1) {
 
             if (b == '\n') {
-                lines.add(tokenize(lineBuilder.toString(), curLine));
+                tokens.addAll(tokenize(lineBuilder.toString(), curLine));
 
                 lineBuilder.setLength(0);
 
@@ -143,7 +143,7 @@ public class AssemblyLexer {
             }
         }
 
-        return lines;
+        return tokens;
     }
 
     private static List<Token> tokenize(String line, int lineNum) throws LexerException {

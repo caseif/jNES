@@ -52,7 +52,7 @@ public class ProgramAssembler {
     public void read(InputStream input) throws IOException, MalformedAssemblyException {
         System.out.println("Lexing assembly...");
 
-        List<List<Token>> tokenized = AssemblyLexer.lex(input);
+        List<Token> tokenized = AssemblyLexer.lex(input);
 
         System.out.println("Parsing assembly...");
 

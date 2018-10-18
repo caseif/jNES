@@ -25,7 +25,7 @@
 
 package net.caseif.jnes.assembly.parser;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import net.caseif.jnes.assembly.ExpressionPart;
 
 import javax.annotation.Nullable;
 
@@ -47,12 +47,13 @@ class Expression<T> {
         return value;
     }
 
-    enum Type {
+    enum Type implements ExpressionPart {
         MNEMONIC,
         TARGET,
         IMM_VALUE,
         LABEL_DEF,
         LABEL_REF,
+        CONSTANT,
         COMMENT
     }
 

@@ -44,6 +44,7 @@ import static net.caseif.jnes.assembly.lexer.Token.Type.RIGHT_PAREN;
 import static net.caseif.jnes.assembly.lexer.Token.Type.X;
 import static net.caseif.jnes.assembly.lexer.Token.Type.Y;
 
+import net.caseif.jnes.assembly.ExpressionPart;
 import net.caseif.jnes.assembly.lexer.Token;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.util.exception.ParserException;
@@ -53,42 +54,53 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class AssemblyParser {
 
-    private static final ImmutableMap<List<Token.Type>, Expression.TypeWithMetadata<?>> EXPRESSION_SYNTAXES
-            = ImmutableMap.<List<Token.Type>, Expression.TypeWithMetadata<?>>builder()
+    private static final Map<Expression.TypeWithMetadata<?>, Set<ImmutableList<ExpressionPart>>> EXPRESSION_SYNTAXES = new HashMap<>();
 
-            .put(ImmutableList.of(COMMENT),     Expression.TypeWithMetadata.of(Expression.Type.COMMENT))
+    static {
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.COMMENT),                       COMMENT);
 
-            .put(ImmutableList.of(MNEMONIC),    Expression.TypeWithMetadata.of(Expression.Type.MNEMONIC))
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.MNEMONIC),                      MNEMONIC);
 
-            .put(ImmutableList.of(LABEL_DEF),   Expression.TypeWithMetadata.of(Expression.Type.LABEL_DEF))
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.LABEL_DEF),                     LABEL_DEF);
 
-            .put(ImmutableList.of(LABEL_REF),   Expression.TypeWithMetadata.of(Expression.Type.LABEL_REF))
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.LABEL_REF),                     LABEL_REF);
 
-            .put(ImmutableList.of(HEX_QWORD),   Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4))
-            .put(ImmutableList.of(BIN_QWORD),   Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4))
-            .put(ImmutableList.of(HEX_DWORD),   Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 2))
-            .put(ImmutableList.of(BIN_DWORD),   Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 2))
-            .put(ImmutableList.of(HEX_WORD),    Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1))
-            .put(ImmutableList.of(DEC_WORD),    Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1))
-            .put(ImmutableList.of(BIN_WORD),    Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1))
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4),                  HEX_QWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4),                  BIN_QWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 2),                  HEX_DWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 2),                  BIN_DWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1),                  HEX_WORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1),                  DEC_WORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1),                  BIN_WORD);
 
-            .put(ImmutableList.of(ADDR_DWORD, COMMA, X),                            Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABX))
-            .put(ImmutableList.of(ADDR_DWORD, COMMA, Y),                            Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABY))
-            .put(ImmutableList.of(ADDR_DWORD),                                      Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABS))
-            .put(ImmutableList.of(ADDR_WORD, COMMA, X),                             Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPX))
-            .put(ImmutableList.of(ADDR_WORD, COMMA, Y),                             Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPY))
-            .put(ImmutableList.of(ADDR_WORD),                                       Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZRP))
-            .put(ImmutableList.of(LEFT_PAREN, ADDR_DWORD, RIGHT_PAREN),             Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IND))
-            .put(ImmutableList.of(LEFT_PAREN, ADDR_WORD, COMMA, X, RIGHT_PAREN),    Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZX))
-            .put(ImmutableList.of(LEFT_PAREN, ADDR_WORD, RIGHT_PAREN, COMMA, Y),    Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZY))
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 4),                   HEX_QWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 4),                   BIN_QWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 2),                   HEX_DWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 2),                   BIN_DWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 1),                   HEX_WORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 1),                   DEC_WORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 1),                   BIN_WORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 2),                   LABEL_REF);
 
-            .build();
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABX),    ADDR_DWORD, COMMA, X);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABY),    ADDR_DWORD, COMMA, Y);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABS),    ADDR_DWORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPX),    ADDR_WORD, COMMA, X);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPY),    ADDR_WORD, COMMA, Y);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZRP),    ADDR_WORD);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IND),    LEFT_PAREN, ADDR_DWORD, RIGHT_PAREN);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZX),    LEFT_PAREN, ADDR_WORD, COMMA, X, RIGHT_PAREN);
+        createSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZY),    LEFT_PAREN, ADDR_WORD, RIGHT_PAREN, COMMA, Y);
+    }
 
     private static final ImmutableMap<List<Expression.Type>, Statement.Type> STATEMENT_SYNTAXES
             = ImmutableMap.<List<Expression.Type>, Statement.Type>builder()
@@ -104,77 +116,153 @@ public class AssemblyParser {
 
             .build();
 
+    private static void createSyntax(Expression.TypeWithMetadata<?> expr, ExpressionPart... pattern) {
+        EXPRESSION_SYNTAXES.computeIfAbsent(expr, k -> new HashSet<>()).add(ImmutableList.copyOf(pattern));
+    }
 
     private static Optional<Pair<Expression<?>, Integer>> nextExpression(List<Token> tokens) {
         if (tokens.isEmpty()) {
             throw new IllegalArgumentException("Empty token list passed to nextExpression");
         }
 
-        outer:
-        for (Map.Entry<List<Token.Type>, Expression.TypeWithMetadata<?>> e : EXPRESSION_SYNTAXES.entrySet()) {
-            if (tokens.size() < e.getKey().size()) {
-                continue;
+        for (Expression.TypeWithMetadata<?> expr : EXPRESSION_SYNTAXES.keySet()) {
+            Optional<Pair<Expression<?>, Integer>> exprOpt = matchExpression(tokens, expr);
+
+            if (exprOpt.isPresent()) {
+                return exprOpt;
             }
-
-            Object value = null;
-
-            for (int i = 0; i < e.getKey().size(); i++) {
-                Token curToken = tokens.get(i);
-
-                if (e.getKey().get(i) != curToken.getType()) {
-                    continue outer;
-                }
-
-                if (curToken.getValue().isPresent()) {
-                    assert value == null : "Found two values in expression with type " + e.getValue().getType().name() + ".";
-
-                    value = curToken.getValue().get();
-                }
-            }
-
-            // if we've gotten this far, we've found a match
-
-            return Optional.of(Pair.of(new Expression<>(e.getValue(), value), e.getKey().size()));
         }
 
         return Optional.empty();
     }
 
-    private static Optional<Pair<Statement, Integer>> nextStatement(List<Expression> exprs) {
-        if (exprs.isEmpty()) {
+    private static Optional<Pair<Expression<?>, Integer>> matchExpression(List<Token> currentTokens,
+            Expression.TypeWithMetadata<?> goal) {
+        if (!EXPRESSION_SYNTAXES.containsKey(goal)) {
             return Optional.empty();
         }
 
-        outer:
-        for (Map.Entry<List<Expression.Type>, Statement.Type> e : STATEMENT_SYNTAXES.entrySet()) {
-            List<Object> values = new ArrayList<>();
+        for (ImmutableList<ExpressionPart> pattern : EXPRESSION_SYNTAXES.get(goal)) {
+            Optional<Pair<Expression<?>, Integer>> exprOpt = tryMatchPattern(currentTokens, goal, pattern);
 
-            for (int i = 0; i < e.getKey().size(); i++) {
-                Expression curExpr = exprs.get(i);
-
-                if (e.getKey().get(i) != curExpr.getType().getType()) {
-                    continue outer;
-                }
-
-                if (curExpr.getValue() != null) {
-                    values.add(curExpr.getValue());
-                }
-
-                if (curExpr.getType().getMetadata() != null) {
-                    values.add(curExpr.getType().getMetadata());
-                }
+            if (exprOpt.isPresent()) {
+                return exprOpt;
             }
-
-            // if we've gotten this far, we've found a match
-
-            return Optional.of(Pair.of(e.getValue().constructStatement(values.toArray()), e.getKey().size()));
         }
 
         return Optional.empty();
     }
 
-    public static List<Statement> parse(List<List<Token>> tokens) throws ParserException {
-        return parseToStatements(parseToExpressions(tokens));
+    private static Optional<Pair<Expression<?>, Integer>> matchExpression(List<Token> currentTokens,
+            Expression.Type goal) {
+        for (Map.Entry<Expression.TypeWithMetadata<?>, Set<ImmutableList<ExpressionPart>>> e : EXPRESSION_SYNTAXES.entrySet()) {
+            if (e.getKey().getType() != goal) {
+                continue;
+            }
+
+            for (ImmutableList<ExpressionPart> pattern : e.getValue()) {
+                Optional<Pair<Expression<?>, Integer>> exprOpt = tryMatchPattern(currentTokens, e.getKey(), pattern);
+
+                if (exprOpt.isPresent()) {
+                    return exprOpt;
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static Optional<Pair<Expression<?>, Integer>> tryMatchPattern(List<Token> currentTokens,
+            Expression.TypeWithMetadata<?> goal, List<ExpressionPart> pattern) {
+        System.out.println("seeking expression " + goal.getType().name());
+        System.out.println("  head: " + currentTokens.get(0).getType().name());
+
+        if (currentTokens.size() < pattern.size()) {
+            return Optional.empty();
+        }
+
+        Object value = null;
+
+        for (int i = 0; i < pattern.size(); i++) {
+            Token curToken = currentTokens.get(i);
+
+            if (pattern.get(i) instanceof Token.Type) {
+                // try to match the target token
+                if (pattern.get(i) != curToken.getType()) {
+                    // can't match, so the pattern is inapplicable
+                    return Optional.empty();
+                }
+            } else {
+                // recursively try to match the target expression
+                if (!matchExpression(currentTokens, ((Expression.TypeWithMetadata<?>) pattern.get(i))).isPresent()) {
+                    // can't match, so the pattern is inapplicable
+                    return Optional.empty();
+                }
+            }
+
+            if (curToken.getValue().isPresent()) {
+                assert value == null : "Found two values in expression with type " + goal.getType().name() + ".";
+
+                value = curToken.getValue().get();
+            }
+        }
+
+        // if we've gotten this far, we've found a match
+
+        System.out.println("  Matched " + goal.getType().name() + "!");
+        return Optional.of(Pair.of(new Expression<>(goal, value), pattern.size()));
+    }
+
+    private static Optional<Pair<Statement, Integer>> nextStatement(List<Token> tokens) {
+        if (tokens.isEmpty()) {
+            return Optional.empty();
+        }
+
+        for (Map.Entry<List<Expression.Type>, Statement.Type> e : STATEMENT_SYNTAXES.entrySet()) {
+            Optional<Pair<Statement, Integer>> stmtOpt = matchStatement(tokens, e.getValue(), e.getKey());
+
+            if (stmtOpt.isPresent()) {
+                return stmtOpt;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private static Optional<Pair<Statement, Integer>> matchStatement(List<Token> curTokens,
+            Statement.Type goal, List<Expression.Type> pattern) {
+        curTokens = new ArrayList<>(curTokens);
+
+        List<Object> values = new ArrayList<>();
+
+        int lenInTokens = 0;
+
+        for (Expression.Type nextExpr : pattern) {
+            Optional<Pair<Expression<?>, Integer>> exprOpt = matchExpression(curTokens, nextExpr);
+
+            if (exprOpt.isPresent()) {
+                lenInTokens += exprOpt.get().second();
+
+                if (exprOpt.get().first().getValue() != null) {
+                    values.add(exprOpt.get().first().getValue());
+                }
+
+                if (exprOpt.get().first().getType().getMetadata() != null) {
+                    values.add(exprOpt.get().first().getValue());
+                }
+            } else {
+                // this pattern is a bust
+                return Optional.empty();
+            }
+        }
+
+        // if we've gotten this far, we've found a match
+
+        return Optional.of(Pair.of(goal.constructStatement(values.toArray()), lenInTokens));
+    }
+
+    public static List<Statement> parse(List<Token> tokens) throws ParserException {
+        return parseToStatements(tokens);
     }
 
     private static List<Expression> parseToExpressions(List<List<Token>> tokens) throws ParserException {
@@ -201,13 +289,13 @@ public class AssemblyParser {
         return exprs;
     }
 
-    private static List<Statement> parseToStatements(List<Expression> exprs) throws ParserException {
+    private static List<Statement> parseToStatements(List<Token> tokens) throws ParserException {
         List<Statement> stmts = new ArrayList<>();
 
         int curLine = 1;
 
-        while (!exprs.isEmpty()) {
-            Optional<Pair<Statement, Integer>> res = nextStatement(exprs);
+        while (!tokens.isEmpty()) {
+            Optional<Pair<Statement, Integer>> res = nextStatement(tokens);
 
             if (!res.isPresent()) {
                 throw new ParserException(curLine);
@@ -215,7 +303,7 @@ public class AssemblyParser {
 
             stmts.add(res.get().first());
 
-            exprs = exprs.subList(res.get().second(), exprs.size());
+            tokens = tokens.subList(res.get().second(), tokens.size());
 
             curLine++;
         }

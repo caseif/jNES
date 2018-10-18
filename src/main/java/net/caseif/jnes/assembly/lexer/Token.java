@@ -25,6 +25,7 @@
 
 package net.caseif.jnes.assembly.lexer;
 
+import net.caseif.jnes.assembly.ExpressionPart;
 import net.caseif.jnes.model.cpu.Mnemonic;
 
 import com.google.common.base.Functions;
@@ -56,7 +57,7 @@ public class Token {
         return Optional.ofNullable(val);
     }
 
-    public enum Type {
+    public enum Type implements ExpressionPart {
         LABEL_DEF,
         LABEL_REF,
         MNEMONIC(Mnemonic::valueOf),
