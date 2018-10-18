@@ -60,8 +60,7 @@ NOP                 ; perform assertions:
 LDX #$00            ; reset X
 LDY #$00            ; reset Y
 
-LDA #$00            ; set a=0
-CMP #$00            ; a == 0, so zero flag is set
+LDA #$00            ; set a=0 (sets zero flag)
 
 BNE not_equal       ; this should not branch
 BEQ equal           ; this should branch
@@ -74,7 +73,7 @@ not_equal:          ; this should not be reached
 LDX #$02            ; set x=2 (should not execute)
 
 equ_part_2:
-CMP #$01            ; a != 1, so zero flag is not set
+LDA #$01            ; set a=1 (clears zero flag)
 
 BEQ equal_2         ; this should not branch
 BNE not_equal_2     ; this should branch
@@ -135,8 +134,7 @@ NOP                 ; perform assertions:
 LDX #$00            ; reset X
 LDY #$00            ; reset Y
 
-LDA #$01            ; set a to be positive
-CMP #$00            ; operand doesn't matter since we only care about setting the negative flag
+LDA #$01            ; set a to be positive (clears negative flag)
 
 BMI minus           ; this should not branch
 BPL plus            ; this should branch
@@ -149,8 +147,7 @@ minus:              ; this should not be reached
 LDX #$02            ; set x=2
 
 sign_part_2:
-LDA #$80            ; set a to be negative
-CMP #$00            ; again, operand doesn't matter
+LDA #$80            ; set a to be negative (sets negative flag)
 
 BPL plus_2          ; this should not branch
 BMI minus_2         ; this should branch
