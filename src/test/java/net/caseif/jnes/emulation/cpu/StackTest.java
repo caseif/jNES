@@ -62,7 +62,7 @@ public class StackTest {
         assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
         assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
         assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.INTERRUPT_DISABLE));
-        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
     }
 
 }

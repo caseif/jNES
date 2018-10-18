@@ -48,13 +48,10 @@ NOP                 ; perform assertions:
 ; processor status push/pop
 ;;;;;;;;;;;;;;;;
 
-LDA #$00            ; reset acc
-SBC #$01            ; sub 1 from acc, setting negative flag
 SEC                 ; set carry flag
 SEI                 ; set interrupt disable just for fun
 PHP                 ; push status to stack
 
-LDA #$00            ; reset acc
 CLC                 ; clear carry flag
 CLI                 ; clear interrupt disable flag
 
@@ -64,4 +61,4 @@ NOP                 ; perform assertions:
                     ; C = 1
                     ; Z = 0
                     ; I = 1
-                    ; N = 1
+                    ; N = 0
