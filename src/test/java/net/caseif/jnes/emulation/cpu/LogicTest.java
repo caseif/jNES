@@ -124,7 +124,27 @@ public class LogicTest {
         assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
         assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
 
-        // test ASL
+        // test ASL (memory)
+
+        runCpuOnce(ci);
+        assertEquals(14, ci.regs.getAcc());
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(0xFE, ci.regs.getAcc());
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(0, ci.regs.getAcc());
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        // test LSR
 
         runCpuOnce(ci);
         assertEquals(3, ci.regs.getAcc());
@@ -136,6 +156,64 @@ public class LogicTest {
         assertEquals(3, ci.regs.getAcc());
         assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
         assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(0, ci.regs.getAcc());
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        // test ROL
+
+        runCpuOnce(ci);
+        assertEquals(14, ci.regs.getAcc());
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(15, ci.regs.getAcc());
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(0xFF, ci.regs.getAcc());
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(3, ci.regs.getAcc());
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(0, ci.regs.getAcc());
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        // test LSR
+
+        runCpuOnce(ci);
+        assertEquals(3, ci.regs.getAcc());
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(0x83, ci.regs.getAcc());
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
+        assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
+
+        runCpuOnce(ci);
+        assertEquals(0x83, ci.regs.getAcc());
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.NEGATIVE));
         assertFalse(ci.getStatus().getFlag(CpuStatus.Flag.ZERO));
 
         runCpuOnce(ci);

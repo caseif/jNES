@@ -167,15 +167,18 @@ public class CpuInterpreter {
             }
             case SBC: {
                 byte acc0 = (byte) regs.getAcc();
-                regs.setAcc((byte) (acc0 - m));
+
+                byte notCarry = status.getFlag(CpuStatus.Flag.CARRY) ? (byte) 0 : (byte) 1;
+
+                regs.setAcc((byte) (acc0 - m - notCarry));
 
                 setZeroAndNegFlags(A);
 
                 boolean borrow = (acc0 >> 7) + ((255 - m) >> 7) + (((regs.getAcc() & 0x40) & ((255 - m) & 0x40)) >> 6) <= 1;
                 if (borrow) {
-                    status.setFlag(CpuStatus.Flag.CARRY);
-                } else {
                     status.clearFlag(CpuStatus.Flag.CARRY);
+                } else {
+                    status.setFlag(CpuStatus.Flag.CARRY);
                 }
 
                 boolean overflow = ((acc0 ^ regs.getAcc()) & ((255 - m) ^ regs.getAcc()) & 0x80) != 0;
