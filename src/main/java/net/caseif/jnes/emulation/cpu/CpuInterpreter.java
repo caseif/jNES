@@ -323,13 +323,13 @@ public class CpuInterpreter {
                 status.clearFlag(CpuStatus.Flag.OVERFLOW);
                 break;
             case CMP:
-                cmp(regs.getAcc(), m);
+                cmp(regs.getAcc(), unsign(m));
                 break;
             case CPX:
-                cmp(regs.getX(), m);
+                cmp(regs.getX(), unsign(m));
                 break;
             case CPY:
-                cmp(regs.getY(), m);
+                cmp(regs.getY(), unsign(m));
                 break;
             case SEC:
                 status.setFlag(CpuStatus.Flag.CARRY);
@@ -428,16 +428,20 @@ public class CpuInterpreter {
         }
     }
 
-    private void cmp(short reg, byte m) {
-        if (m >= reg) {
-            status.setFlag(CpuStatus.Flag.ZERO);
-            if (m == regs.getAcc()) {
-                status.setFlag(CpuStatus.Flag.CARRY);
+    private void cmp(short reg, short m) {
+        if (reg >= 0x80) {
+            status.setFlag(CpuStatus.Flag.NEGATIVE);
+        }
+
+        if (reg >= m) {
+            status.setFlag(CpuStatus.Flag.CARRY);
+            if (reg == m) {
+                status.setFlag(CpuStatus.Flag.ZERO);
             } else {
-                status.clearFlag(CpuStatus.Flag.CARRY);
+                status.clearFlag(CpuStatus.Flag.ZERO);
             }
         } else {
-            status.clearFlag(CpuStatus.Flag.ZERO);
+            status.clearFlag(CpuStatus.Flag.CARRY);
         }
     }
 
