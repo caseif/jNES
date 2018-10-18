@@ -47,17 +47,16 @@ public class AssemblyLexer {
     private static final Pattern RE_Y               = Pattern.compile("^Y");
     private static final Pattern RE_LABEL_DEF       = Pattern.compile("^([A-z][A-z0-9_]*):");
     private static final Pattern RE_LABEL_REF       = Pattern.compile("^([A-z][A-z0-9_]*)");
-    private static final Pattern RE_HEX_QWORD       = Pattern.compile("^#\\$([0-9A-F]{8})");
-    private static final Pattern RE_HEX_DWORD       = Pattern.compile("^#\\$([0-9A-F]{4})");
-    private static final Pattern RE_HEX_WORD        = Pattern.compile("^#\\$([0-9A-F]{2})");
-    private static final Pattern RE_DEC_WORD        = Pattern.compile("^#([0-9]{1,3})");
-    private static final Pattern RE_BIN_QWORD       = Pattern.compile("^#%([01]{32})");
-    private static final Pattern RE_BIN_DWORD       = Pattern.compile("^#%([01]{16})");
-    private static final Pattern RE_BIN_WORD        = Pattern.compile("^#%([01]{8})");
-    private static final Pattern RE_ADDR_DWORD      = Pattern.compile("^\\$([0-9A-F]{4})");
-    private static final Pattern RE_ADDR_WORD       = Pattern.compile("^\\$([0-9A-F]{2})");
+    private static final Pattern RE_HEX_QWORD       = Pattern.compile("^\\$([0-9A-F]{8})");
+    private static final Pattern RE_HEX_DWORD       = Pattern.compile("^\\$([0-9A-F]{4})");
+    private static final Pattern RE_HEX_WORD        = Pattern.compile("^\\$([0-9A-F]{2})");
+    private static final Pattern RE_DEC_WORD        = Pattern.compile("^([0-9]{1,3})");
+    private static final Pattern RE_BIN_QWORD       = Pattern.compile("^%([01]{32})");
+    private static final Pattern RE_BIN_DWORD       = Pattern.compile("^%([01]{16})");
+    private static final Pattern RE_BIN_WORD        = Pattern.compile("^%([01]{8})");
     private static final Pattern RE_COMMENT         = Pattern.compile("^;.*$");
     private static final Pattern RE_COMMA           = Pattern.compile("^,");
+    private static final Pattern RE_POUND           = Pattern.compile("^#");
     private static final Pattern RE_LEFT_PAREN      = Pattern.compile("^\\(");
     private static final Pattern RE_RIGHT_PAREN     = Pattern.compile("^\\)");
 
@@ -75,9 +74,8 @@ public class AssemblyLexer {
             .put(RE_BIN_QWORD, Token.Type.BIN_QWORD)
             .put(RE_BIN_DWORD, Token.Type.BIN_DWORD)
             .put(RE_BIN_WORD, Token.Type.BIN_WORD)
-            .put(RE_ADDR_DWORD, Token.Type.ADDR_DWORD)
-            .put(RE_ADDR_WORD, Token.Type.ADDR_WORD)
             .put(RE_COMMA, Token.Type.COMMA)
+            .put(RE_POUND, Token.Type.POUND)
             .put(RE_LEFT_PAREN, Token.Type.LEFT_PAREN)
             .put(RE_RIGHT_PAREN, Token.Type.RIGHT_PAREN)
             .build();

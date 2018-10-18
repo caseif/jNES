@@ -25,8 +25,6 @@
 
 package net.caseif.jnes.assembly.parser;
 
-import static net.caseif.jnes.assembly.lexer.Token.Type.ADDR_DWORD;
-import static net.caseif.jnes.assembly.lexer.Token.Type.ADDR_WORD;
 import static net.caseif.jnes.assembly.lexer.Token.Type.BIN_DWORD;
 import static net.caseif.jnes.assembly.lexer.Token.Type.BIN_QWORD;
 import static net.caseif.jnes.assembly.lexer.Token.Type.BIN_WORD;
@@ -40,6 +38,7 @@ import static net.caseif.jnes.assembly.lexer.Token.Type.LABEL_DEF;
 import static net.caseif.jnes.assembly.lexer.Token.Type.LABEL_REF;
 import static net.caseif.jnes.assembly.lexer.Token.Type.LEFT_PAREN;
 import static net.caseif.jnes.assembly.lexer.Token.Type.MNEMONIC;
+import static net.caseif.jnes.assembly.lexer.Token.Type.POUND;
 import static net.caseif.jnes.assembly.lexer.Token.Type.RIGHT_PAREN;
 import static net.caseif.jnes.assembly.lexer.Token.Type.X;
 import static net.caseif.jnes.assembly.lexer.Token.Type.Y;
@@ -74,13 +73,15 @@ public class AssemblyParser {
 
         createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.LABEL_REF),                     LABEL_REF);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4),                  HEX_QWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4),                  BIN_QWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 2),                  HEX_DWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 2),                  BIN_DWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1),                  HEX_WORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1),                  DEC_WORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 1),                  BIN_WORD);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABX),    HEX_DWORD, COMMA, X);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABY),    HEX_DWORD, COMMA, Y);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABS),    HEX_DWORD);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPX),    HEX_WORD, COMMA, X);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPY),    HEX_WORD, COMMA, Y);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZRP),    HEX_WORD);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IND),    LEFT_PAREN, HEX_DWORD, RIGHT_PAREN);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZX),    LEFT_PAREN, HEX_WORD, COMMA, X, RIGHT_PAREN);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZY),    LEFT_PAREN, HEX_WORD, RIGHT_PAREN, COMMA, Y);
 
         createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 4),                   HEX_QWORD);
         createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 4),                   BIN_QWORD);
@@ -91,15 +92,7 @@ public class AssemblyParser {
         createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 1),                   BIN_WORD);
         createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 2),                   LABEL_REF);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABX),    ADDR_DWORD, COMMA, X);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABY),    ADDR_DWORD, COMMA, Y);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABS),    ADDR_DWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPX),    ADDR_WORD, COMMA, X);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPY),    ADDR_WORD, COMMA, Y);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZRP),    ADDR_WORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IND),    LEFT_PAREN, ADDR_DWORD, RIGHT_PAREN);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZX),    LEFT_PAREN, ADDR_WORD, COMMA, X, RIGHT_PAREN);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZY),    LEFT_PAREN, ADDR_WORD, RIGHT_PAREN, COMMA, Y);
+        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4),                  POUND, Expression.Type.CONSTANT);
 
         createStatementSyntax(Statement.Type.COMMENT, Expression.Type.COMMENT);
         createStatementSyntax(Statement.Type.LABEL_DEF, Expression.Type.LABEL_DEF);
