@@ -59,6 +59,10 @@ class Expression<T> {
         IMM_VALUE,
         LABEL_DEF,
         LABEL_REF,
+        QWORD,
+        DWORD,
+        WORD,
+        NUMBER,
         CONSTANT,
         COMMENT
     }

@@ -42,6 +42,7 @@ import static net.caseif.jnes.assembly.lexer.Token.Type.POUND;
 import static net.caseif.jnes.assembly.lexer.Token.Type.RIGHT_PAREN;
 import static net.caseif.jnes.assembly.lexer.Token.Type.X;
 import static net.caseif.jnes.assembly.lexer.Token.Type.Y;
+import static net.caseif.jnes.assembly.parser.Expression.TypeWithMetadata;
 
 import net.caseif.jnes.assembly.ExpressionPart;
 import net.caseif.jnes.assembly.lexer.Token;
@@ -65,45 +66,60 @@ public class AssemblyParser {
     private static final Map<Statement.Type, Set<ImmutableList<Expression.Type>>> STATEMENT_SYNTAXES = new LinkedHashMap<>();
 
     static {
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.COMMENT),                       COMMENT);
+        createExpressionSyntax(Expression.Type.COMMENT,                         COMMENT);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.MNEMONIC),                      MNEMONIC);
+        createExpressionSyntax(Expression.Type.MNEMONIC,                        MNEMONIC);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.LABEL_DEF),                     LABEL_DEF);
+        createExpressionSyntax(Expression.Type.LABEL_DEF,                       LABEL_DEF);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.LABEL_REF),                     LABEL_REF);
+        createExpressionSyntax(Expression.Type.LABEL_REF,                       LABEL_REF);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABX),    HEX_DWORD, COMMA, X);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABY),    HEX_DWORD, COMMA, Y);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ABS),    HEX_DWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPX),    HEX_WORD, COMMA, X);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZPY),    HEX_WORD, COMMA, Y);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.ZRP),    HEX_WORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IND),    LEFT_PAREN, HEX_DWORD, RIGHT_PAREN);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZX),    LEFT_PAREN, HEX_WORD, COMMA, X, RIGHT_PAREN);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.TARGET, AddressingMode.IZY),    LEFT_PAREN, HEX_WORD, RIGHT_PAREN, COMMA, Y);
+        createExpressionSyntax(Expression.Type.QWORD, 4,                        HEX_QWORD);
+        createExpressionSyntax(Expression.Type.QWORD, 4,                        BIN_QWORD);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 4),                   HEX_QWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 4),                   BIN_QWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 2),                   HEX_DWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 2),                   BIN_DWORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 1),                   HEX_WORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 1),                   DEC_WORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 1),                   BIN_WORD);
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.CONSTANT, 2),                   LABEL_REF);
+        createExpressionSyntax(Expression.Type.DWORD, 2,                        HEX_DWORD);
+        createExpressionSyntax(Expression.Type.DWORD, 2,                        BIN_DWORD);
 
-        createExpressionSyntax(Expression.TypeWithMetadata.of(Expression.Type.IMM_VALUE, 4),                  POUND, Expression.Type.CONSTANT);
+        createExpressionSyntax(Expression.Type.WORD,  1,                        HEX_WORD);
+        createExpressionSyntax(Expression.Type.WORD,  1,                        DEC_WORD);
+        createExpressionSyntax(Expression.Type.WORD,  1,                        BIN_WORD);
 
-        createStatementSyntax(Statement.Type.COMMENT, Expression.Type.COMMENT);
-        createStatementSyntax(Statement.Type.LABEL_DEF, Expression.Type.LABEL_DEF);
-        createStatementSyntax(Statement.Type.INSTRUCTION, Expression.Type.MNEMONIC, Expression.Type.IMM_VALUE);
-        createStatementSyntax(Statement.Type.INSTRUCTION, Expression.Type.MNEMONIC, Expression.Type.LABEL_REF);
-        createStatementSyntax(Statement.Type.INSTRUCTION, Expression.Type.MNEMONIC, Expression.Type.TARGET);
-        createStatementSyntax(Statement.Type.INSTRUCTION, Expression.Type.MNEMONIC);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.ABX,      Expression.Type.DWORD, COMMA, X);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.ABY,      Expression.Type.DWORD, COMMA, Y);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.ABS,      Expression.Type.DWORD);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.ZPX,      Expression.Type.WORD, COMMA, X);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.ZPY,      Expression.Type.WORD, COMMA, Y);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.ZRP,      Expression.Type.WORD);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.IND,      LEFT_PAREN, Expression.Type.DWORD, RIGHT_PAREN);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.IZX,      LEFT_PAREN, Expression.Type.WORD, COMMA, X, RIGHT_PAREN);
+        createExpressionSyntax(Expression.Type.TARGET, AddressingMode.IZY,      LEFT_PAREN, Expression.Type.WORD, RIGHT_PAREN, COMMA, Y);
+
+        createExpressionSyntax(Expression.Type.NUMBER,                          Expression.Type.QWORD);
+        createExpressionSyntax(Expression.Type.NUMBER,                          Expression.Type.DWORD);
+        createExpressionSyntax(Expression.Type.NUMBER,                          Expression.Type.WORD);
+
+        createExpressionSyntax(Expression.Type.IMM_VALUE,                       POUND, Expression.Type.WORD);
+
+        createExpressionSyntax(Expression.Type.CONSTANT,                        Expression.Type.NUMBER);
+        createExpressionSyntax(Expression.Type.CONSTANT,                        Expression.Type.LABEL_REF);
+
+        createStatementSyntax(Statement.Type.COMMENT,                           Expression.Type.COMMENT);
+        createStatementSyntax(Statement.Type.LABEL_DEF,                         Expression.Type.LABEL_DEF);
+        createStatementSyntax(Statement.Type.INSTRUCTION,                       Expression.Type.MNEMONIC, Expression.Type.IMM_VALUE);
+        createStatementSyntax(Statement.Type.INSTRUCTION,                       Expression.Type.MNEMONIC, Expression.Type.LABEL_REF);
+        createStatementSyntax(Statement.Type.INSTRUCTION,                       Expression.Type.MNEMONIC, Expression.Type.TARGET);
+        createStatementSyntax(Statement.Type.INSTRUCTION,                       Expression.Type.MNEMONIC);
     }
 
-    private static void createExpressionSyntax(Expression.TypeWithMetadata<?> expr, ExpressionPart... pattern) {
-        EXPRESSION_SYNTAXES.computeIfAbsent(expr, k -> new LinkedHashSet<>()).add(ImmutableList.copyOf(pattern));
+    private static void createExpressionSyntax(Expression.Type expr, Object metadata, ExpressionPart... pattern) {
+        EXPRESSION_SYNTAXES.computeIfAbsent(
+                Expression.TypeWithMetadata.of(expr, metadata),
+                k -> new LinkedHashSet<>()).add(ImmutableList.copyOf(pattern)
+        );
+    }
+
+    private static void createExpressionSyntax(Expression.Type expr, ExpressionPart... pattern) {
+        createExpressionSyntax(expr, null, pattern);
     }
 
     private static void createStatementSyntax(Statement.Type stmt, Expression.Type... pattern) {
@@ -268,6 +284,11 @@ public class AssemblyParser {
                 // set the value, if applicable
                 if (res.get().first().getValue() != null) {
                     value = res.get().first().getValue();
+                }
+
+                // try to inherit the child's metadata
+                if (goal.getMetadata() == null && res.get().first().getType().getMetadata() != null) {
+                    goal  = res.get().first().getType();
                 }
 
                 // set the expression's line number if we haven't already

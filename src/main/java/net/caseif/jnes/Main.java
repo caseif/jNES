@@ -166,6 +166,7 @@ public class Main {
             ProgramAssembler assembler = new ProgramAssembler();
 
             try (InputStream input = Files.newInputStream(inputPath)) {
+                System.out.println("Starting assembly of file " + inputPath + ".");
                 assembler.read(input);
             }
 
