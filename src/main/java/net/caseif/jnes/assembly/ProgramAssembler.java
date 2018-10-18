@@ -158,7 +158,7 @@ public class ProgramAssembler {
     }
 
     // helper method for reading and indexing all label definitions
-    private Map<String, Integer> buildLabelDictionary() {
+    private Map<String, Integer> buildLabelDictionary() throws MalformedAssemblyException {
         Map<String, Integer> labelDict = new HashMap<>();
 
         int pc = 0;
@@ -176,6 +176,10 @@ public class ProgramAssembler {
                 }
                 case LABEL_DEF: {
                     Statement.LabelDefinitionStatement lblStmt = (Statement.LabelDefinitionStatement) stmt;
+
+                    if (labelDict.containsKey(lblStmt.getId())) {
+                        throw new MalformedAssemblyException("Found duplicate label " + lblStmt.getId() + "!");
+                    }
 
                     // add the label to the dictionary - no need to increment the PC
                     labelDict.put(lblStmt.getId(), pc);
