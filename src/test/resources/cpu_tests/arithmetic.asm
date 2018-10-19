@@ -2,6 +2,9 @@
 ; test basic arithmetic
 ;;;;;;;;;;;;;;;;
 
+; required for execution on the NES
+.org $8000
+
 ; skip to the entry point
 JMP entry_point
 

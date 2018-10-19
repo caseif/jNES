@@ -2,6 +2,9 @@
 ; test bitwise logic
 ;;;;;;;;;;;;;;;;
 
+; required for execution on the NES
+.org $8000
+
 JMP entry_point     ; skip to entry point
 
 ; small convenience subroutine for left-shifting memory contents

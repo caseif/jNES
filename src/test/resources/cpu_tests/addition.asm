@@ -2,6 +2,9 @@
 ; test addition
 ;;;;;;;;;;;;;;;;
 
+; required for execution on the NES
+.org $8000
+
 ;;;;;;;;;;;;;;;;
 ; without carry
 ;;;;;;;;;;;;;;;;

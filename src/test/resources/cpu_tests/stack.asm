@@ -2,6 +2,9 @@
 ; test stack operations
 ;;;;;;;;;;;;;;;;
 
+; required for execution on the NES
+.org $8000
+
 ;;;;;;;;;;;;;;;;
 ; basic stack operations
 ;;;;;;;;;;;;;;;;

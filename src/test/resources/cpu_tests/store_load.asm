@@ -2,6 +2,9 @@
 ;;; store/load tests
 ;;;;;;;;;;;;;;;;
 
+; required for execution on the NES
+.org $8000
+
 ;;;;;;;;;;;;;;;;
 ;; accumulator tests
 ;;;;;;;;;;;;;;;;

@@ -2,6 +2,9 @@
 ; test subtraction
 ;;;;;;;;;;;;;;;;
 
+; required for execution on the NES
+.org $8000
+
 SEC                 ; set carry flag
 LDA #$20            ; init acc
 SBC #$10            ; subtract 0x10
