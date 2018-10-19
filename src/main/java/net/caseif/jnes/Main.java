@@ -25,15 +25,12 @@
 
 package net.caseif.jnes;
 
-import net.caseif.jnes.assembly.ProgramAssembler;
 import net.caseif.jnes.disassembly.PrgDisassembler;
 import net.caseif.jnes.disassembly.RomDumper;
 import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 import net.caseif.jnes.loader.RomLoader;
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.util.exception.CpuHaltedException;
-import net.caseif.jnes.util.exception.LexerException;
-import net.caseif.jnes.util.exception.ParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,23 +55,6 @@ public class Main {
         String cmd = args[0].toLowerCase();
 
         switch (cmd) {
-            case "assemble": {
-                Path inputPath = Paths.get(args[1]);
-                Path outputPath = null;
-
-                if (args.length == 3) {
-                    outputPath = Paths.get(args[2]);
-                }
-
-                try {
-                    assemble(inputPath, outputPath);
-                } catch (LexerException | ParserException ex) {
-                    ex.printStackTrace();
-                    System.err.println("Failed to assemble program.");
-                }
-
-                break;
-            }
             case "disassemble": {
                 Path inputPath = Paths.get(args[1]);
                 Path outputPath;
@@ -148,36 +128,6 @@ public class Main {
 
                 break;
             }
-        }
-    }
-
-    private static void assemble(Path inputPath, @Nullable Path outputPath) throws IOException, LexerException, ParserException {
-        if (!Files.exists(inputPath)) {
-            throw new IOException("No such file " + inputPath.toString() + ".");
-        }
-
-        if (Files.isDirectory(inputPath)) {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(inputPath, ASM_FILTER)) {
-                for (Path child : stream) {
-                    assemble(child, null);
-                }
-            }
-        } else {
-            ProgramAssembler assembler = new ProgramAssembler();
-
-            try (InputStream input = Files.newInputStream(inputPath)) {
-                System.out.println("Starting assembly of file " + inputPath + ".");
-                assembler.read(input);
-            }
-
-            if (outputPath == null) {
-                String fileName = parseFileName(inputPath);
-                outputPath = inputPath.getParent().resolve(fileName + ".bin");
-            }
-
-            System.out.println(outputPath);
-
-            assembler.assemble(Files.newOutputStream(outputPath));
         }
     }
 
