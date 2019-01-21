@@ -28,6 +28,7 @@ package net.caseif.jnes.emulation.cpu;
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
+import net.caseif.jnes.model.cpu.InterruptType;
 import net.caseif.jnes.util.exception.CpuHaltedException;
 import net.caseif.jnes.util.tuple.Pair;
 
@@ -58,7 +59,7 @@ public class CpuInterpreter {
             instr = Instruction.fromOpcode(readPrg());
             System.out.println("Executing instruction " + instr.getMnemonic().name()
                     + " @ $" + String.format("%02X", regs.getPc() - 1));
-            tick0(instr);
+            executeInstruction(instr);
         } catch (CpuHaltedException ex) {
             throw ex;
         } catch (Throwable t) {
@@ -68,7 +69,7 @@ public class CpuInterpreter {
         }
     }
 
-    private void tick0(Instruction instr) throws CpuHaltedException {
+    private void executeInstruction(Instruction instr) throws CpuHaltedException {
         Pair<Byte, Short> mp = getM(instr.getAddressingMode());
         byte m = mp.first();
         short addr = mp.second();
@@ -386,18 +387,7 @@ public class CpuInterpreter {
                 break;
             // system
             case BRK: {
-                if (!status.getFlag(CpuStatus.Flag.INTERRUPT_DISABLE)) {
-                    break;
-                }
-
-                memory.push(regs, (byte) ((regs.getPc() >> 8) & 0xFF)); // push MSB of PC
-                memory.push(regs, (byte) (regs.getPc() & 0xFF)); // push LSB of PC
-                memory.push(regs, status.serialize()); // push flags
-
-                // load interrupt vector from ROM
-                regs.setPc((short) (memory.read(0xFFFE) & (memory.read(0xFFFF) << 8)));
-
-                status.setFlag(CpuStatus.Flag.BREAK_COMMAND);
+                issueInterrupt(InterruptType.BRK);
                 break;
             }
             case NOP:
@@ -419,6 +409,37 @@ public class CpuInterpreter {
         if (regs.getPc() - 0x8000 >= cart.getPrgRom().length) {
             throw new CpuHaltedException();
         }
+    }
+
+    public void issueInterrupt(InterruptType type) {
+        // check if the interrupt should be masked
+        if (type.isMaskable() && status.getFlag(CpuStatus.Flag.INTERRUPT_DISABLE)) {
+            return;
+        }
+
+        // push PC and P
+        if (type.doesPushPc()) {
+            memory.push(regs, (byte) (regs.getPc() >> 8)); // push MSB
+            memory.push(regs, (byte) (regs.getPc() & 0xFF));        // push LSB
+
+            memory.push(regs, status.serialize());
+        }
+
+        // set B flag
+        if (type.doesSetB()) {
+            status.setFlag(CpuStatus.Flag.BREAK_COMMAND);
+        }
+
+        // set I flag
+        if (type.doesSetI()) {
+            status.setFlag(CpuStatus.Flag.INTERRUPT_DISABLE);
+        }
+
+        // little-Endian, so the LSB comes first
+        short vector = (short) (memory.read(type.getVectorLocation()) | ((type.getVectorLocation() + 1) << 8));
+
+        // set the PC
+        regs.setPc(vector);
     }
 
     private void setZeroAndNegFlags(CpuRegisters.Register reg) {
@@ -519,9 +540,9 @@ public class CpuInterpreter {
     }
 
     /**
-     * Returns value M, along with the address it twas read from, if applicable.
-     * @param mode
-     * @return
+     * Returns value M, along with the address it was read from, if applicable.
+     * @param mode The addressing mode to use
+     * @return The read value along with the address it was obtained from (if applicable)
      */
     private Pair<Byte, Short> getM(AddressingMode mode) {
         switch (mode) {
