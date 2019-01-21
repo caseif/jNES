@@ -25,36 +25,35 @@
 
 package net.caseif.jnes.emulation.cpu;
 
-import net.caseif.jnes.model.Cartridge;
-import net.caseif.jnes.model.cpu.Instruction;
-import net.caseif.jnes.model.cpu.Mnemonic;
-import net.caseif.jnes.util.IoHelper;
-import net.caseif.jnes.util.exception.CpuHaltedException;
+import static net.caseif.jnes.emulation.cpu.CpuTestHelper.loadPrg;
+import static net.caseif.jnes.emulation.cpu.CpuTestHelper.runCpuOnce;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+public class InterruptTest {
 
-public class CpuTestHelper {
+    private static CpuInterpreter ci;
 
-    static CpuInterpreter loadPrg(String file) throws IOException {
-        byte[] prg = IoHelper.toBuffer(CpuTestHelper.class.getResourceAsStream(file)).array();
-        byte[] prgExtended = new byte[16384];
-        System.arraycopy(prg, 0, prgExtended, 0, prg.length);
-        Cartridge cart = new Cartridge(prgExtended, new byte[0], Cartridge.MirroringMode.HORIZONTAL, false, false, (byte) 0);
-
-        return new CpuInterpreter(cart);
+    @BeforeAll
+    public static void init() throws IOException {
+        ci = loadPrg("/cpu_tests/interrupt.bin");
     }
 
-    static void runCpuOnce(CpuInterpreter ci) {
-        try {
-            do {
-                ci.tick();
-            } while (Instruction.fromOpcode(ci.peekPrg()).getMnemonic() != Mnemonic.NOP);
-        } catch (CpuHaltedException ex) {
-            fail("CPU halted prematurely (PC=0x" + Integer.toHexString(ci.regs.getPc()) + ").");
-        }
+    @Test
+    public void testLogic() {
+        // test interrupts
+
+        runCpuOnce(ci);
+        assertEquals(1, ci.regs.getAcc());
+        assertEquals(1, ci.regs.getX());
+        assertEquals(1, ci.regs.getY());
+        assertTrue(ci.getStatus().getFlag(CpuStatus.Flag.CARRY));
     }
 
 }

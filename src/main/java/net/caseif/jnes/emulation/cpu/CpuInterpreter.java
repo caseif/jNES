@@ -328,16 +328,6 @@ public class CpuInterpreter {
 
                 break;
             }
-            case RTI: {
-                status.deserialize(memory.pop(regs)); // pop flags
-
-                byte pcl = memory.pop(regs); // pop LSB of PC
-                byte pcm = memory.pop(regs); // pop MSB of PC
-
-                regs.setPc((short) ((pcm & pcl) + 1));
-
-                break;
-            }
             // registers
             case CLC:
                 status.clearFlag(CpuStatus.Flag.CARRY);
@@ -390,6 +380,16 @@ public class CpuInterpreter {
                 issueInterrupt(InterruptType.BRK);
                 break;
             }
+            case RTI: {
+                status.deserialize(memory.pop(regs)); // pop flags
+
+                // ORDER IS IMPORTANT
+                short newPc = (short) (memory.pop(regs) | (memory.pop(regs) << 8));
+
+                regs.setPc(newPc);
+
+                break;
+            }
             case NOP:
                 // no-op
                 break;
@@ -419,8 +419,10 @@ public class CpuInterpreter {
 
         // push PC and P
         if (type.doesPushPc()) {
-            memory.push(regs, (byte) (regs.getPc() >> 8)); // push MSB
-            memory.push(regs, (byte) (regs.getPc() & 0xFF));        // push LSB
+            int pc = regs.getPc();
+
+            memory.push(regs, (byte) (pc >> 8));      // push MSB
+            memory.push(regs, (byte) (pc & 0xFF));    // push LSB
 
             memory.push(regs, status.serialize());
         }
@@ -436,7 +438,8 @@ public class CpuInterpreter {
         }
 
         // little-Endian, so the LSB comes first
-        short vector = (short) (memory.read(type.getVectorLocation()) | ((type.getVectorLocation() + 1) << 8));
+        short vector = (short) (memory.read(type.getVectorLocation())
+                | (unsign(memory.read(type.getVectorLocation() + 1)) << 8));
 
         // set the PC
         regs.setPc(vector);
