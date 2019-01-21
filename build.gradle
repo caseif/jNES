@@ -19,8 +19,8 @@ ext.projectName = 'jnes'
 ext.inceptionYear = '2018'
 ext.packaging = 'jar'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = '10'
+targetCompatibility = '10'
 
 configurations {
     testCompile.extendsFrom(shadow)
@@ -36,7 +36,7 @@ license {
     exclude '**/lib/**/*.java'
 
     ext {
-        year = '2018'
+        year = '2018-2019'
         author = 'Max Roncace'
         email = 'mproncace@gmail.com'
     }

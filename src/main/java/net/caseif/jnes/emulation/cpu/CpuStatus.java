@@ -1,6 +1,6 @@
 /*
  * This file is a part of jNES.
- * Copyright (c) 2018, Max Roncace <mproncace@gmail.com>
+ * Copyright (c) 2018-2019, Max Roncace <mproncace@gmail.com>
  *
  * The MIT License
  *
