@@ -23,47 +23,18 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.model.cpu;
+package net.caseif.jnes.emulation.ppu;
 
-public enum InterruptType {
+public class PpuStatus {
 
-    RESET(0xFFFA, false, true, false, false),
-    NMI(0xFFFC, false, false, false, false),
-    IRQ(0xFFFE, true, true, false, true),
-    BRK(0xFFFE, false, true, true, true);
+    public boolean vblank = false;
+    public boolean sprite0Hit = false;
+    public boolean spriteOverflow = false;
 
-    private final int vectorLocation;
-    private final boolean maskable;
-    private final boolean pushPc;
-    private final boolean setB;
-    private final boolean setI;
-
-    InterruptType(int vectorLocation, boolean maskable, boolean pushPc, boolean setB, boolean setI) {
-        this.vectorLocation = vectorLocation;
-        this.maskable = maskable;
-        this.pushPc = pushPc;
-        this.setB = setB;
-        this.setI = setI;
-    }
-
-    public int getVectorLocation() {
-        return vectorLocation;
-    }
-
-    public boolean isMaskable() {
-        return maskable;
-    }
-
-    public boolean doesPushPc() {
-        return pushPc;
-    }
-
-    public boolean doesSetB() {
-        return setB;
-    }
-
-    public boolean doesSetI() {
-        return setI;
+    public byte serialize() {
+        return (byte) (((vblank         ? 1 : 0) << 7)
+                |      ((sprite0Hit     ? 1 : 0) << 6)
+                |      ((spriteOverflow ? 1 : 0) << 5));
     }
 
 }

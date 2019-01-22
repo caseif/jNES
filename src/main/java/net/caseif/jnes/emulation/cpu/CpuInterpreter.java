@@ -25,6 +25,7 @@
 
 package net.caseif.jnes.emulation.cpu;
 
+import net.caseif.jnes.emulation.ppu.PpuEmulator;
 import net.caseif.jnes.model.Cartridge;
 import net.caseif.jnes.model.cpu.AddressingMode;
 import net.caseif.jnes.model.cpu.Instruction;
@@ -42,11 +43,19 @@ public class CpuInterpreter {
     private final CpuStatus status = new CpuStatus();
     final CpuRegisters regs = new CpuRegisters();
 
-    public final CpuMemory memory;
+    final CpuMemory memory;
+
+    private final PpuEmulator ppu;
 
     public CpuInterpreter(Cartridge cart) {
         this.cart = cart;
-        this.memory = new CpuMemory(cart);
+
+        this.memory = new CpuMemory(cart, this);
+        this.ppu = new PpuEmulator(this);
+    }
+
+    public PpuEmulator getPpu() {
+        return ppu;
     }
 
     public CpuStatus getStatus() {

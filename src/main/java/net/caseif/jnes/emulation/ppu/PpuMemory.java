@@ -23,47 +23,36 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.model.cpu;
+package net.caseif.jnes.emulation.ppu;
 
-public enum InterruptType {
+public class PpuMemory {
 
-    RESET(0xFFFA, false, true, false, false),
-    NMI(0xFFFC, false, false, false, false),
-    IRQ(0xFFFE, true, true, false, true),
-    BRK(0xFFFE, false, true, true, true);
+    private final byte[] patternTables = new byte[0x2000];
+    private final byte[] nameTables = new byte[0x1F00];
+    private final byte[] palettes = new byte[0x100];
 
-    private final int vectorLocation;
-    private final boolean maskable;
-    private final boolean pushPc;
-    private final boolean setB;
-    private final boolean setI;
+    public byte read(short addr) {
+        addr %= 0x4000;
 
-    InterruptType(int vectorLocation, boolean maskable, boolean pushPc, boolean setB, boolean setI) {
-        this.vectorLocation = vectorLocation;
-        this.maskable = maskable;
-        this.pushPc = pushPc;
-        this.setB = setB;
-        this.setI = setI;
+        if (addr < 0x2000) {
+            return patternTables[addr];
+        } else if (addr < 0x3F00) {
+            return nameTables[addr - 0x2000];
+        } else {
+            return palettes[addr - 0x3F00];
+        }
     }
 
-    public int getVectorLocation() {
-        return vectorLocation;
-    }
+    public void write(short addr, byte val) {
+        addr %= 0x4000;
 
-    public boolean isMaskable() {
-        return maskable;
-    }
-
-    public boolean doesPushPc() {
-        return pushPc;
-    }
-
-    public boolean doesSetB() {
-        return setB;
-    }
-
-    public boolean doesSetI() {
-        return setI;
+        if (addr < 0x2000) {
+            patternTables[addr] = val;
+        } else if (addr < 0x3F00) {
+            nameTables[addr - 0x2000] = val;
+        } else {
+            palettes[addr - 0x3F00] = val;
+        }
     }
 
 }

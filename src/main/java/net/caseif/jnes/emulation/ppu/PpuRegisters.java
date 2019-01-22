@@ -23,47 +23,29 @@
  * THE SOFTWARE.
  */
 
-package net.caseif.jnes.model.cpu;
+package net.caseif.jnes.emulation.ppu;
 
-public enum InterruptType {
+import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 
-    RESET(0xFFFA, false, true, false, false),
-    NMI(0xFFFC, false, false, false, false),
-    IRQ(0xFFFE, true, true, false, true),
-    BRK(0xFFFE, false, true, true, true);
+public class PpuRegisters {
 
-    private final int vectorLocation;
-    private final boolean maskable;
-    private final boolean pushPc;
-    private final boolean setB;
-    private final boolean setI;
+    PpuControl control = new PpuControl();
+    PpuStatus status = new PpuStatus();
 
-    InterruptType(int vectorLocation, boolean maskable, boolean pushPc, boolean setB, boolean setI) {
-        this.vectorLocation = vectorLocation;
-        this.maskable = maskable;
-        this.pushPc = pushPc;
-        this.setB = setB;
-        this.setI = setI;
-    }
+    byte oamAddr = 0;
 
-    public int getVectorLocation() {
-        return vectorLocation;
-    }
+    byte xScroll = 0;
+    byte yScroll = 0;
+    // first write sets x-scroll, second sets y-scroll
+    boolean scrollWrittenOnce = false;
 
-    public boolean isMaskable() {
-        return maskable;
-    }
+    byte addrHigh = 0;
+    byte addrLow = 0;
+    // first write sets high byte, second sets low byte
+    boolean addrHighWritten = false;
 
-    public boolean doesPushPc() {
-        return pushPc;
-    }
+    byte oamDmaHigh = 0;
 
-    public boolean doesSetB() {
-        return setB;
-    }
-
-    public boolean doesSetI() {
-        return setI;
-    }
+    byte latch = 0;
 
 }

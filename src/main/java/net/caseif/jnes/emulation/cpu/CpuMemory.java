@@ -32,13 +32,13 @@ import net.caseif.jnes.model.Cartridge;
 public class CpuMemory {
 
     private final Cartridge cart;
+    private final CpuInterpreter interpreter;
 
     private final byte[] sysMemory = new byte[2048];
-    private final byte[] ppuIoRegs = new byte[8];
-    private final byte[] otherMmio = new byte[32];
 
-    public CpuMemory(Cartridge cart) {
+    public CpuMemory(Cartridge cart, CpuInterpreter interpreter) {
         this.cart = cart;
+        this.interpreter = interpreter;
     }
 
     public byte read(byte addr) {
@@ -53,9 +53,14 @@ public class CpuMemory {
         if (addr < 0x2000) {
             return sysMemory[addr % 0x800];
         } else if (addr < 0x4000) {
-            return ppuIoRegs[addr % 8];
+            return interpreter.getPpu().readMmio((byte) (addr % 8));
         } else if (addr < 0x4020) {
-            return otherMmio[addr % 32];
+            if (addr == 0x4014) {
+                //TODO: I think this is supposed to return the PPU latch value
+                return 0;
+            } else {
+                return 0; //TODO
+            }
         } else if (addr < 0x8000) {
             return 0; //TODO
         } else {
@@ -76,10 +81,15 @@ public class CpuMemory {
         if (addr < 0x2000) {
             sysMemory[addr % 0x800] = value;
         } else if (addr < 0x4000) {
-            ppuIoRegs[addr % 8] = value;
+            interpreter.getPpu().writeMmio((byte) (addr % 8), value);
         } else if (addr < 0x4020) {
-            otherMmio[addr % 32] = value;
+            if (addr == 0x4014) {
+                interpreter.getPpu().writeOamDmaAddrHigh(value);
+            } else {
+                //TODO
+            }
         }
+
         // attempts to write to ROM fail silently
     }
 
