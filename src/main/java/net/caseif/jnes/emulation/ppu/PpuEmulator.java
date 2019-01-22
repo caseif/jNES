@@ -31,14 +31,17 @@ import net.caseif.jnes.model.cpu.InterruptType;
 public class PpuEmulator {
 
     private static final int TOTAL_SCANLINES = 262;
+    private static final int VISIBLE_SCANLINES = 240;
     private static final int CYCLES_PER_SCANLINE = 341;
 
     private final CpuInterpreter cpu;
 
-    private final PpuRegisters regs = new PpuRegisters();
+    private final PpuMmioRegisters mmioRegs = new PpuMmioRegisters();
+    private final PpuInternalRegisters internalRegs = new PpuInternalRegisters();
+    private final PpuStatus status = new PpuStatus();
     private final PpuMemory memory = new PpuMemory();
 
-    private int scanlineProgress = 0;
+    private int scanlineCycle = 0;
     private int scanline = 0;
     private boolean oddFrame = false;
 
@@ -47,8 +50,78 @@ public class PpuEmulator {
     }
 
     public void tick() {
-        if (scanlineProgress++ >= CYCLES_PER_SCANLINE) {
-            scanlineProgress = 0;
+        performCycle();
+
+        advanceCounters();
+    }
+
+    private void performCycle() {
+        if (scanline < VISIBLE_SCANLINES) {
+            if (scanlineCycle == 0) {
+                return; // idle cycle
+            } else if (scanlineCycle <= 256) {
+                int subcycle = (scanlineCycle - 1) % 8;
+
+                switch (subcycle) {
+                    case 1:
+                        //TODO: fetch NT byte
+                        break;
+                    case 3:
+                        //TODO: fetch AT byte
+                        break;
+                    case 5:
+                        //TODO: fetch BG low byte
+                        break;
+                    case 7:
+                        //TODO: fetch BG high byte
+
+                        // increment hori(v)
+                        if ((internalRegs.v & 0x1F) == 0) {
+                            internalRegs.v = (short) ((internalRegs.v & ~0x1F) ^ 0x400);
+                        } else {
+                            internalRegs.v++;
+                        }
+
+                        break;
+                    default:
+                        return; // first cycle of memory fetch
+                }
+
+                if (scanlineCycle == 256) {
+                    short v = internalRegs.v;
+
+                    if ((v & 0x7000) != 0x7000) {
+                        v += 0x1000;
+                    } else {
+                        v &= ~0x7000;
+                        short y = (short) ((v & 0x03E0) >> 5);
+                        if (y == 29) {
+                            y = 0;
+                            v ^= 0x0800;
+                        } else if (y == 31) {
+                            y = 0;
+                        } else {
+                            y += 1;
+                        }
+                        v = (short) ((v & ~0x03E0) | (y << 5));
+                    }
+
+                    internalRegs.v = v;
+                }
+            } else if (scanlineCycle == 257) {
+                internalRegs.v = (short) ((internalRegs.v & ~0b11111) | (internalRegs.t & 0b11111));
+            }
+        }
+    }
+
+    private void advanceCounters() {
+        // skip last cycle of last scanline on odd frames
+        if (oddFrame && scanline == TOTAL_SCANLINES - 1 && scanlineCycle == CYCLES_PER_SCANLINE - 2) {
+            scanlineCycle++;
+        }
+
+        if (scanlineCycle++ >= CYCLES_PER_SCANLINE) {
+            scanlineCycle = 0;
 
             if (scanline++ >= TOTAL_SCANLINES) {
                 scanline = 0;
@@ -57,18 +130,18 @@ public class PpuEmulator {
             }
         }
 
-        if (scanline == 241 && scanlineProgress == 1) {
+        if (scanline == 241 && scanlineCycle == 1) {
             // set vblank flag
-            regs.status.vblank = true;
+            status.vblank = true;
 
-            if (regs.control.genNmis) {
+            if (mmioRegs.control.genNmis) {
                 cpu.issueInterrupt(InterruptType.NMI);
             }
         } else if (scanline == 261) {
             // reset PPU status
-            regs.status.vblank = false;
-            regs.status.sprite0Hit = false;
-            regs.status.spriteOverflow = false;
+            status.vblank = false;
+            status.sprite0Hit = false;
+            status.spriteOverflow = false;
         }
     }
 
@@ -77,19 +150,25 @@ public class PpuEmulator {
 
         switch (index) {
             case 2:
-                val = (byte) ((regs.status.serialize() & 0b11100000) | (regs.latch & 0b00011111));
+                val = (byte) ((status.serialize() & 0b11100000) | (mmioRegs.latch & 0b00011111));
+
+                internalRegs.w = false;
+
+                status.spriteOverflow = false;
+                status.sprite0Hit = false;
+
                 break;
             case 4:
                 val = 0; //TODO
                 break;
             case 7:
-                val = memory.read((short) ((regs.addrHigh << 8) | regs.addrLow));
+                val = memory.read(internalRegs.v);
                 break;
             default:
-                return regs.latch; // 2C02 returns latch value if write-only register is read
+                return mmioRegs.latch; // 2C02 returns latch value if write-only register is read
         }
 
-        regs.latch  = val; // latch is filled whenever a readable register is read
+        mmioRegs.latch  = val; // latch is filled whenever a readable register is read
 
         return val;
     }
@@ -97,57 +176,63 @@ public class PpuEmulator {
     public void writeMmio(byte index, byte val) {
         switch (index) {
             case 0:
-                boolean oldGenNmis = regs.control.genNmis;
+                boolean oldGenNmis = mmioRegs.control.genNmis;
 
-                regs.control.deserializeCtrl(val);
+                mmioRegs.control.deserializeCtrl(val);
+
+                internalRegs.t = (short) ((internalRegs.t & 0b1100) | (mmioRegs.control.nameTable & 0b11));
 
                 // if the genNmis flag is newly enabled and we're in vblank, immediately generate an NMI
-                if (!oldGenNmis && regs.control.genNmis && regs.status.vblank) {
+                if (!oldGenNmis && mmioRegs.control.genNmis && status.vblank) {
                     cpu.issueInterrupt(InterruptType.NMI);
                 }
 
                 break;
             case 1:
-                regs.control.deserializeMask(val);
+                mmioRegs.control.deserializeMask(val);
                 break;
             case 3:
-                regs.oamAddr = val;
+                mmioRegs.oamAddr = val;
                 break;
             case 4:
                 //TODO: write to OAM
                 break;
             case 5:
-                if (regs.scrollWrittenOnce) {
-                    regs.yScroll = val;
+                if (internalRegs.w) {
+                    internalRegs.t = (short) ((internalRegs.t & ~0b11111) | (val << 3));
+                    internalRegs.x = (byte) (val & 0b111);
                 } else {
-                    regs.xScroll = val;
+                    internalRegs.t = (short) ((internalRegs.t & 0b00001100_00011111)
+                            |  ((val       & 0b111) << 12)
+                            | (((val >> 6) & 0b11)  << 8)
+                            | (((val >> 3) & 0b111) << 5));
                 }
 
-                regs.scrollWrittenOnce = !regs.scrollWrittenOnce;
+                internalRegs.w = !internalRegs.w;
 
                 break;
             case 6:
-                if (regs.addrHighWritten) {
-                    regs.addrLow = val;
+                if (internalRegs.w) {
+                    internalRegs.t = (short) ((internalRegs.t & 0xFF) | ((val & 0b111111) << 8));
                 } else {
-                    regs.addrHigh = val;
+                    internalRegs.t = (short) ((internalRegs.t & ~0xFF) | (val & 0xFF));
                 }
 
-                regs.addrHighWritten = !regs.addrHighWritten;
+                internalRegs.w = !internalRegs.w;
 
                 break;
             case 7:
-                memory.write((short) ((regs.addrHigh << 8) | regs.addrLow), val);
+                memory.write(internalRegs.v, val);
                 break;
             default:
                 return;
         }
 
-        regs.latch = val;
+        mmioRegs.latch = val;
     }
 
     public void writeOamDmaAddrHigh(byte addrHigh) {
-        regs.oamDmaHigh = addrHigh;
+        mmioRegs.oamDmaHigh = addrHigh;
     }
 
 }

@@ -27,22 +27,11 @@ package net.caseif.jnes.emulation.ppu;
 
 import net.caseif.jnes.emulation.cpu.CpuInterpreter;
 
-public class PpuRegisters {
+public class PpuMmioRegisters {
 
     PpuControl control = new PpuControl();
-    PpuStatus status = new PpuStatus();
 
     byte oamAddr = 0;
-
-    byte xScroll = 0;
-    byte yScroll = 0;
-    // first write sets x-scroll, second sets y-scroll
-    boolean scrollWrittenOnce = false;
-
-    byte addrHigh = 0;
-    byte addrLow = 0;
-    // first write sets high byte, second sets low byte
-    boolean addrHighWritten = false;
 
     byte oamDmaHigh = 0;
 

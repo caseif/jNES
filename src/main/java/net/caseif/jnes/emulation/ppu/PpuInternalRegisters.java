@@ -25,36 +25,23 @@
 
 package net.caseif.jnes.emulation.ppu;
 
-import static net.caseif.jnes.util.MathHelper.unsign;
+public class PpuInternalRegisters {
 
-public class PpuMemory {
-
-    private final byte[] patternTables = new byte[0x2000];
-    private final byte[] nameTables = new byte[0x1F00];
-    private final byte[] palettes = new byte[0x100];
-
-    public byte read(short addr) {
-        int addri = unsign(addr) % 0x4000;
-
-        if (addri < 0x2000) {
-            return patternTables[addri];
-        } else if (addri < 0x3F00) {
-            return nameTables[addri - 0x2000];
-        } else {
-            return palettes[addri - 0x3F00];
-        }
-    }
-
-    public void write(short addr, byte val) {
-        int addri = unsign(addr) % 0x4000;
-
-        if (addri < 0x2000) {
-            patternTables[addri] = val;
-        } else if (addri < 0x3F00) {
-            nameTables[addri - 0x2000] = val;
-        } else {
-            palettes[addri - 0x3F00] = val;
-        }
-    }
+    /**
+     * Current VRAM address.
+     */
+    public short v;
+    /**
+     * Temporary VRAM address.
+     */
+    public short t;
+    /**
+     * Fine x-scroll.
+     */
+    public byte x;
+    /**
+     * Write flag (for twice-writable registers_.
+     */
+    public boolean w;
 
 }
