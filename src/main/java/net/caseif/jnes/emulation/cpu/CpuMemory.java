@@ -35,6 +35,7 @@ public class CpuMemory {
 
     private final byte[] sysMemory = new byte[2048];
     private final byte[] ppuIoRegs = new byte[8];
+    private final byte[] otherMmio = new byte[32];
 
     public CpuMemory(Cartridge cart) {
         this.cart = cart;
@@ -51,10 +52,12 @@ public class CpuMemory {
     public byte read(int addr) {
         if (addr < 0x2000) {
             return sysMemory[addr % 0x800];
-        } else if (addr < 0x401F) {
+        } else if (addr < 0x4000) {
             return ppuIoRegs[addr % 8];
+        } else if (addr < 0x4020) {
+            return otherMmio[addr % 32];
         } else if (addr < 0x8000) {
-            return 0; // TODO
+            return 0; //TODO
         } else {
             addr -= 0x8000;
             // ROM is mirrored if cartridge only has 1 bank
@@ -63,10 +66,6 @@ public class CpuMemory {
             }
             return cart.getPrgRom()[addr];
         }
-    }
-
-    public void write(byte addr, byte value) {
-        write(unsign(addr), value);
     }
 
     public void write(short addr, byte value) {
@@ -78,6 +77,8 @@ public class CpuMemory {
             sysMemory[addr % 0x800] = value;
         } else if (addr < 0x4000) {
             ppuIoRegs[addr % 8] = value;
+        } else if (addr < 0x4020) {
+            otherMmio[addr % 32] = value;
         }
         // attempts to write to ROM fail silently
     }
